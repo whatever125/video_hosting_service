@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+
+{% block content %}
+    <div>
+        <h2>Last Videos</h2>
+        {% for vid in last_videos %}
+            <div style="width: 33%">
+                <a href="/video/{{ vid.id }}"><img src="static/pre/{{ vid.id }}.jpg" style="width: 100%"></a>
+                <p>{{ vid.title }} - {{ db_sess.query(User).filter(User.id == vid.author).first().name }} {{ db_sess.query(User).filter(User.id == vid.author).first().surname }}</p>
+            </div>
+        {% endfor %}
+    </div>
+    <div>
+        <h2>Best Videos</h2>
+        {% for vid in best_videos %}
+            <div style="width: 33%">
+                <a href="/video/{{ vid.id }}"><img src="static/pre/{{ vid.id }}.jpg" style="width: 100%"></a>
+                <p>{{ vid.title }} - {{ db_sess.query(User).filter(User.id == vid.author).first().name }} {{ db_sess.query(User).filter(User.id == vid.author).first().surname }}</p>
+            </div>
+        {% endfor %}
+    </div>
+    <div>
+        <h2>Worst Videos</h2>
+        {% for vid in worst_videos %}
+            <div style="width: 33%">
+                <a href="/video/{{ vid.id }}"><img src="static/pre/{{ vid.id }}.jpg" style="width: 100%"></a>
+                <p>{{ vid.title }} - {{ db_sess.query(User).filter(User.id == vid.author).first().name }} {{ db_sess.query(User).filter(User.id == vid.author).first().surname }}</p>
+            </div>
+        {% endfor %}
+    </div>
+{% endblock %}

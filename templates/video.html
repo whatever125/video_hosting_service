@@ -1,0 +1,9 @@
+{% extends "base.html" %}
+
+{% block content %}
+    <video width="75%" controls>
+      <source src="{{ video_src }}" type="video/mp4">
+    </video>
+    <h3>{{ current_video.title }} 👍 {{ current_video.likes - current_video.dislikes }} 👎</h3>
+    <h5>{{ author.name }} {{ author.surname }} ➕ {{ author.followers - author.haters }} ➖</h5>
+{% endblock %}
