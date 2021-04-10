@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+
+{% block content %}
+    <h2>{{ user.name }} {{ user.surname }} ➕ {{ user.followers - user.haters }} ➖</h2>
+    <div>
+        <h2>Last Videos</h2>
+        {% for vid in videos %}
+            <div style="width: 50%">
+                <a href="/video/{{ vid.id }}"><img src="/static/pre/{{ vid.id }}.jpg" style="width: 100%"></a>
+                <a href="/video/{{ vid.id }}">{{ vid.title }}</a>
+            </div>
+        {% endfor %}
+    </div>
+{% endblock %}

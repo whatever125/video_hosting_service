@@ -6,7 +6,7 @@
         {% for vid in last_videos %}
             <div style="width: 33%">
                 <a href="/video/{{ vid.id }}"><img src="static/pre/{{ vid.id }}.jpg" style="width: 100%"></a>
-                <p>{{ vid.title }} - {{ db_sess.query(User).filter(User.id == vid.author).first().name }} {{ db_sess.query(User).filter(User.id == vid.author).first().surname }}</p>
+                <p><a href="/video/{{ vid.id }}">{{ vid.title }}</a> - <a href="/user/{{ db_sess.query(User).filter(User.id == vid.author).first().id }}">{{ db_sess.query(User).filter(User.id == vid.author).first().name }} {{ db_sess.query(User).filter(User.id == vid.author).first().surname }}</a></p>
             </div>
         {% endfor %}
     </div>
@@ -15,7 +15,7 @@
         {% for vid in best_videos %}
             <div style="width: 33%">
                 <a href="/video/{{ vid.id }}"><img src="static/pre/{{ vid.id }}.jpg" style="width: 100%"></a>
-                <p>{{ vid.title }} - {{ db_sess.query(User).filter(User.id == vid.author).first().name }} {{ db_sess.query(User).filter(User.id == vid.author).first().surname }}</p>
+                <p><a href="/video/{{ vid.id }}">{{ vid.title }}</a> - <a href="/user/{{ db_sess.query(User).filter(User.id == vid.author).first().id }}">{{ db_sess.query(User).filter(User.id == vid.author).first().name }} {{ db_sess.query(User).filter(User.id == vid.author).first().surname }}</a></p>
             </div>
         {% endfor %}
     </div>
@@ -24,7 +24,7 @@
         {% for vid in worst_videos %}
             <div style="width: 33%">
                 <a href="/video/{{ vid.id }}"><img src="static/pre/{{ vid.id }}.jpg" style="width: 100%"></a>
-                <p>{{ vid.title }} - {{ db_sess.query(User).filter(User.id == vid.author).first().name }} {{ db_sess.query(User).filter(User.id == vid.author).first().surname }}</p>
+                <p><a href="/video/{{ vid.id }}">{{ vid.title }}</a> - <a href="/user/{{ db_sess.query(User).filter(User.id == vid.author).first().id }}">{{ db_sess.query(User).filter(User.id == vid.author).first().name }} {{ db_sess.query(User).filter(User.id == vid.author).first().surname }}</a></p>
             </div>
         {% endfor %}
     </div>

@@ -5,5 +5,8 @@
       <source src="{{ video_src }}" type="video/mp4">
     </video>
     <h3>{{ current_video.title }} 👍 {{ current_video.likes - current_video.dislikes }} 👎</h3>
-    <h5>{{ author.name }} {{ author.surname }} ➕ {{ author.followers - author.haters }} ➖</h5>
+    <h5><a href="/user/{{ author.id }}">{{ author.name }} {{ author.surname }}</a> ➕ {{ author.followers - author.haters }} ➖</h5>
+    {% autoescape false %}
+        <p>{{ current_video.description }}</p>
+    {% endautoescape %}
 {% endblock %}
