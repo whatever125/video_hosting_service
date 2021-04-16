@@ -4,12 +4,14 @@ from flask import Flask, render_template, url_for, redirect, request
 from data.videos import Video
 from data.users import User
 from data import db_session
-from flask_login import LoginManager, login_user, current_user, logout_user, login_required
+from flask_login import LoginManager, login_user, current_user, logout_user
 from data.login_form import LoginForm
 from data.register_form import RegisterForm
 from data.video_form import VideoForm
-from flask_restful import reqparse, abort, Api, Resource
+from flask_restful import Api
 from data.users_resource import UsersResource, UserListResource
+from data.likes_resource import LikeResource, DislikeResource, NotLikeResource
+from data.subscriptions_resource import FollowResource, UnfollowResource, NotFollowResource
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'yandexlyceum_secret_key'
@@ -22,30 +24,44 @@ login_manager.init_app(app)
 def forbidden(e):
     params = {
         'title': 'Доступ запрещен',
+        'message': 'Похоже, у вас нет доступа к этой странице ¯\\_(ツ)_/¯',
         'authenticated': current_user.is_authenticated,
         'current_user': current_user
     }
-    return render_template('403.html', **params), 403
+    return render_template('error.html', **params), 403
 
 
 @app.errorhandler(404)
 def page_not_found(e):
     params = {
         'title': 'Страница не найдена',
+        'message': 'Похоже, мы не можем найти нужную вам страницу ¯\\_(ツ)_/¯',
         'authenticated': current_user.is_authenticated,
         'current_user': current_user
     }
-    return render_template('404.html', **params), 404
+    return render_template('error.html', **params), 404
+
+
+@app.errorhandler(405)
+def method_not_allowed(e):
+    params = {
+        'title': 'Метод не разрешен',
+        'message': 'Похоже, этот метод не разрешен ¯\\_(ツ)_/¯',
+        'authenticated': current_user.is_authenticated,
+        'current_user': current_user
+    }
+    return render_template('error.html', **params), 405
 
 
 @app.errorhandler(500)
 def internal_server_error(e):
     params = {
         'title': 'Ошибка сервера',
+        'message': 'Похоже, на сервере произошла непредвиденная ошибка ¯\\_(ツ)_/¯',
         'authenticated': current_user.is_authenticated,
         'current_user': current_user
     }
-    return render_template('500.html', **params), 500
+    return render_template('error.html', **params), 500
 
 
 @app.route('/')
@@ -76,6 +92,8 @@ def load_user(user_id):
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
+    if current_user.is_authenticated:
+        return forbidden('')
     form = LoginForm()
     params = {
         'title': 'Авторизация',
@@ -83,7 +101,7 @@ def login():
         'current_user': current_user
     }
     if form.validate_on_submit():
-        user = db_sess.query(User).filter(User.login == form.login.data).first()
+        user = db_sess.query(User).get(form.login.data)
         if user and user.password == form.password.data:
             login_user(user, remember=form.remember_me.data)
             return redirect('/')
@@ -95,6 +113,8 @@ def login():
 
 @app.route('/register', methods=['GET', 'POST'])
 def register():
+    if current_user.is_authenticated:
+        return forbidden('')
     form = RegisterForm()
     params = {
         'title': 'Регистрация',
@@ -132,19 +152,35 @@ def logout():
         return forbidden('')
 
 
-@app.route('/video/<video_id>')
+@app.route('/video/<int:video_id>')
 def video(video_id):
-    video_id = int(video_id)
-    current_video = db_sess.query(Video).filter(Video.id == video_id).first()
+    current_video = db_sess.query(Video).get(video_id)
     title = current_video.title
     author_id = current_video.author
-    author = db_sess.query(User).filter(User.id == author_id).first()
+    author = db_sess.query(User).get(author_id)
+    like = 0
+    subscription = 0
+    if current_user.is_authenticated:
+        likes = json.loads(current_user.likes)
+        dislikes = json.loads(current_user.dislikes)
+        subscriptions = json.loads(current_user.subscriptions)
+        unsubscriptions = json.loads(current_user.unsubscriptions)
+        if video_id in likes:
+            like = 1
+        elif video_id in dislikes:
+            like = -1
+        if author_id in subscriptions:
+            subscription = 1
+        elif author_id in unsubscriptions:
+            subscription = -1
     params = {
         'title': f'{title} - {author.name} {author.surname}',
         'current_video': current_video,
         'video_id': video_id,
         'video_src': url_for("static", filename=f'vid/{video_id}.mp4'),
         'author': author,
+        'like': like,
+        'subscription': subscription,
         'authenticated': current_user.is_authenticated,
         'current_user': current_user
     }
@@ -184,10 +220,10 @@ def add_video():
     return render_template('add_video.html', form=form, **params)
 
 
-@app.route('/edit_video/<video_id>', methods=['GET', 'POST'])
+@app.route('/edit_video/<int:video_id>', methods=['GET', 'POST'])
 def edit_video(video_id):
     form = VideoForm()
-    video = db_sess.query(Video).filter(Video.id == video_id).first()
+    video = db_sess.query(Video).get(video_id)
     if not current_user.is_authenticated or current_user.id != video.author:
         return forbidden('')
     params = {
@@ -217,9 +253,9 @@ def edit_video(video_id):
     return render_template('edit_video.html', form=form, **params)
 
 
-@app.route('/delete_video/<video_id>')
+@app.route('/delete_video/<int:video_id>')
 def delete_video(video_id):
-    video = db_sess.query(Video).filter(Video.id == video_id).first()
+    video = db_sess.query(Video).get(video_id)
     if current_user.id != video.author:
         return redirect('/')
     db_sess.delete(video)
@@ -229,68 +265,28 @@ def delete_video(video_id):
     return redirect('/')
 
 
-@app.route('/user/<user_id>')
+@app.route('/user/<int:user_id>')
 def user(user_id):
-    user_id = int(user_id)
-    user = db_sess.query(User).filter(User.id == user_id).first()
+    user = db_sess.query(User).get(user_id)
     videos = db_sess.query(Video).filter(Video.author == user_id).all()[::-1]
+    subscription = 0
+    if current_user.is_authenticated:
+        subscriptions = json.loads(current_user.subscriptions)
+        unsubscriptions = json.loads(current_user.unsubscriptions)
+        if user_id in subscriptions:
+            subscription = 1
+        elif user_id in unsubscriptions:
+            subscription = -1
     params = {
         'title': f'{user.name} {user.surname}',
         'user': user,
         'videos': [videos[i * 3:i * 3 + 3] for i in range(len(videos) // 3)] +
                   [videos[(len(videos) // 3) * 3:]],
+        'subscription': subscription,
         'authenticated': current_user.is_authenticated,
         'current_user': current_user
     }
     return render_template('user.html', **params)
-
-
-@app.route('/like/<video_id>')
-def like(video_id):
-    if not current_user.is_authenticated:
-        return forbidden('')
-    print('like', video_id)
-    return redirect(f'/video/{video_id}')
-
-
-@app.route('/not_like/<video_id>')
-def not_like(video_id):
-    if not current_user.is_authenticated:
-        return forbidden('')
-    print('not_like', video_id)
-    return ''
-
-
-@app.route('/dislike/<video_id>')
-def dislike(video_id):
-    if not current_user.is_authenticated:
-        return forbidden('')
-    print('dislike', video_id)
-    return ''
-
-
-@app.route('/follow/<user_id>')
-def follow(user_id):
-    if not current_user.is_authenticated or current_user.id == user_id:
-        return forbidden('')
-    print('follow', user_id)
-    return ''
-
-
-@app.route('/not_follow/<user_id>')
-def not_follow(user_id):
-    if not current_user.is_authenticated or current_user.id == user_id:
-        return forbidden('')
-    print('not_follow', user_id)
-    return ''
-
-
-@app.route('/unfollow/<user_id>')
-def unfollow(user_id):
-    if not current_user.is_authenticated or current_user.id == user_id:
-        return forbidden('')
-    print('unfollow', user_id)
-    return ''
 
 
 def main():
@@ -302,4 +298,10 @@ if __name__ == '__main__':
     db_sess = db_session.create_session()
     api.add_resource(UsersResource, '/api/users')
     api.add_resource(UserListResource, '/api/users/<int:user_id>')
+    api.add_resource(LikeResource, '/api/like/<int:video_id>')
+    api.add_resource(DislikeResource, '/api/dislike/<int:video_id>')
+    api.add_resource(NotLikeResource, '/api/not_like/<int:video_id>')
+    api.add_resource(FollowResource, '/api/follow/<int:user_id>')
+    api.add_resource(UnfollowResource, '/api/unfollow/<int:user_id>')
+    api.add_resource(NotFollowResource, '/api/not_follow/<int:user_id>')
     main()

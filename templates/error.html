@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% block content %}
     <h1>Ой!</h1>
-    <h4>Похоже, мы не можем найти нужную вам страницу ¯\_(ツ)_/¯</h4>
+    <h4>{{ message }}</h4>
     <div><a class="link-dark" href="#" onclick="history.back(-1)">Но вы можете вернуться назад</a></div>
     <div><a class="link-dark" href="/">Или перейти на главную</a></div>
 {% endblock %}

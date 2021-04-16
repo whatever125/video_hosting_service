@@ -13,21 +13,21 @@
     <h3>
         {{ current_video.title }}
         {% if authenticated and current_user.id != current_video.author %}
-            <input onclick="like()" class="btn btn-outline-warning" type="submit" name="like" id="like" value="👍">
+            <input onclick="like()" class="btn btn-outline-warning {% if like > 0 %} active {% endif %}" type="submit" name="like" id="like" value="👍">
         {% endif %}
         <span id="likes">{{ current_video.likes - current_video.dislikes }}</span>
         {% if authenticated and current_user.id != current_video.author %}
-            <input onclick="dislike()" class="btn btn-outline-warning" type="submit" name="dislike" id="dislike" value="👎">
+            <input onclick="dislike()" class="btn btn-outline-warning {% if like < 0 %} active {% endif %}" type="submit" name="dislike" id="dislike" value="👎">
         {% endif %}
     </h3>
     <h5>
         <a href="/user/{{ author.id }}">{{ author.name }} {{ author.surname }}</a>
         {% if authenticated and current_user.id != current_video.author %}
-            <input onclick="follow()" class="btn btn-outline-secondary" type="submit" name="follow" id="follow" value="➕">
+            <input onclick="follow()" class="btn btn-outline-secondary {% if subscription > 0 %} active {% endif %}" type="submit" name="follow" id="follow" value="➕">
         {% endif %}
         <span id="followers">{{ author.followers - author.haters }}</span>
         {% if authenticated and current_user.id != current_video.author %}
-            <input onclick="unfollow()" class="btn btn-outline-secondary" type="submit" name="unfollow" id="unfollow" value="➖">
+            <input onclick="unfollow()" class="btn btn-outline-secondary {% if subscription < 0 %} active {% endif %}" type="submit" name="unfollow" id="unfollow" value="➖">
         {% endif %}
     </h5>
     {% autoescape false %}
@@ -43,13 +43,13 @@
             {
                 follow.classList.remove("active");
                 followers.innerHTML = parseInt(followers.innerText) - 1;
-                $.getJSON('/not_follow/{{ current_video.author }}', {}, function(data){});
+                $.post('/api/not_follow/{{ current_video.author }}');
             }
             else
             {
                 follow.classList.add("active");
                 followers.innerHTML = parseInt(followers.innerText) + 1;
-                $.getJSON('/follow/{{ current_video.author }}', {}, function(data){});
+                $.post('/api/follow/{{ current_video.author }}');
                 if ( unfollow.classList.contains('active') )
                 {
                     unfollow.classList.remove("active");
@@ -65,13 +65,13 @@
             {
                 unfollow.classList.remove("active");
                 followers.innerHTML = parseInt(followers.innerText) + 1;
-                $.getJSON('/not_follow/{{ current_video.author }}', {}, function(data){});
+                $.post('/api/not_follow/{{ current_video.author }}');
             }
             else
             {
                 unfollow.classList.add("active");
                 followers.innerHTML = parseInt(followers.innerText) - 1;
-                $.getJSON('/unfollow/{{ current_video.author }}', {}, function(data){});
+                $.post('/api/unfollow/{{ current_video.author }}');
                 if ( follow.classList.contains('active') )
                 {
                     follow.classList.remove("active");
@@ -88,13 +88,13 @@
             {
                 like.classList.remove("active");
                 likes.innerHTML = parseInt(likes.innerText) - 1;
-                $.getJSON('/not_like/{{ current_video.id }}', {}, function(data){});
+                $.post('/api/not_like/{{ current_video.id }}');
             }
             else
             {
                 like.classList.add("active");
                 likes.innerHTML = parseInt(likes.innerText) + 1;
-                $.getJSON('/like/{{ current_video.id }}', {}, function(data){});
+                $.post('/api/like/{{ current_video.id }}');
                 if ( dislike.classList.contains('active') )
                 {
                     dislike.classList.remove("active");
@@ -110,13 +110,13 @@
             {
                 dislike.classList.remove("active");
                 likes.innerHTML = parseInt(likes.innerText) + 1;
-                $.getJSON('/not_like/{{ current_video.id }}', {}, function(data){});
+                $.post('/api/not_like/{{ current_video.id }}');
             }
             else
             {
                 dislike.classList.add("active");
                 likes.innerHTML = parseInt(likes.innerText) - 1;
-                $.getJSON('/dislike/{{ current_video.id }}', {}, function(data){});
+                $.post('/api/dislike/{{ current_video.id }}');
                 if ( like.classList.contains('active') )
                 {
                     like.classList.remove("active");

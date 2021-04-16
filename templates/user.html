@@ -4,11 +4,11 @@
     <h2>
         {{ user.name }} {{ user.surname }}
         {% if authenticated and current_user.id != user.id %}
-            ➕
+            <input onclick="follow()" class="btn btn-outline-secondary {% if subscription > 0 %} active {% endif %}" type="submit" name="follow" id="follow" value="➕">
         {% endif %}
-        {{ user.followers - user.haters }}
+        <span id="followers">{{ user.followers - user.haters }}</span>
         {% if authenticated and current_user.id != user.id %}
-            ➖
+            <input onclick="unfollow()" class="btn btn-outline-secondary {% if subscription < 0 %} active {% endif %}" type="submit" name="unfollow" id="unfollow" value="➖">
         {% endif %}
     </h2>
     {% if authenticated and current_user.id == user.id %}
@@ -29,4 +29,51 @@
             {% endfor %}
         </div>
     </div>
+    <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js"> </script>
+    <script type=text/javascript>
+        function follow() {
+            var follow = document.getElementById("follow");
+            var unfollow = document.getElementById("unfollow");
+            var followers = document.getElementById("followers");
+            if ( follow.classList.contains('active') )
+            {
+                follow.classList.remove("active");
+                followers.innerHTML = parseInt(followers.innerText) - 1;
+                $.post('/api/not_follow/{{ user.id }}');
+            }
+            else
+            {
+                follow.classList.add("active");
+                followers.innerHTML = parseInt(followers.innerText) + 1;
+                $.post('/api/follow/{{ user.id }}');
+                if ( unfollow.classList.contains('active') )
+                {
+                    unfollow.classList.remove("active");
+                    followers.innerHTML = parseInt(followers.innerText) + 1;
+                }
+            }
+        }
+        function unfollow() {
+            var follow = document.getElementById("follow");
+            var unfollow = document.getElementById("unfollow");
+            var followers = document.getElementById("followers");
+            if ( unfollow.classList.contains('active') )
+            {
+                unfollow.classList.remove("active");
+                followers.innerHTML = parseInt(followers.innerText) + 1;
+                $.post('/api/not_follow/{{ user.id }}');
+            }
+            else
+            {
+                unfollow.classList.add("active");
+                followers.innerHTML = parseInt(followers.innerText) - 1;
+                $.post('/api/unfollow/{{ user.id }}');
+                if ( follow.classList.contains('active') )
+                {
+                    follow.classList.remove("active");
+                    followers.innerHTML = parseInt(followers.innerText) - 1;
+                }
+            }
+        }
+    </script>
 {% endblock %}

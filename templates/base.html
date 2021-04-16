@@ -24,30 +24,30 @@
                             <a class="nav-link active" href="/">Главная</a>
                         </li>
                         {% if authenticated %}
-                        <li class="nav-item">
-                            <a class="nav-link active" href="/user/{{ current_user.id }}">Мой канал</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link active" href="/">Подписки</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link active" href="/">Отписки</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link active" href="/logout">Выйти</a>
-                        </li>
+                            <li class="nav-item">
+                                <a class="nav-link active" href="/user/{{ current_user.id }}">Мой канал</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link active" href="/">Подписки</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link active" href="/">Отписки</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link active" href="/logout">Выйти</a>
+                            </li>
                         {% else %}
-                        <li class="nav-item">
-                            <a class="nav-link active" href="/login">Войти</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link active" href="/register">Зарегестрироваться</a>
-                        </li>
+                            <li class="nav-item">
+                                <a class="nav-link active" href="/login">Войти</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link active" href="/register">Зарегестрироваться</a>
+                            </li>
                         {% endif %}
                     </ul>
                     <form class="d-flex">
-                        <input class="form-control me-2" type="search" placeholder="Search" aria-label="Search">
-                        <button class="btn btn-outline-success" type="submit">Search</button>
+                        <input class="form-control me-2" type="search" placeholder="Поиск видео" aria-label="Search">
+                        <button class="btn btn-outline-success" type="submit">Найти</button>
                     </form>
                 </div>
             </div>
