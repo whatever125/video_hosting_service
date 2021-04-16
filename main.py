@@ -289,19 +289,13 @@ def user(user_id):
     return render_template('user.html', **params)
 
 
-def main():
-    app.run()
-
-
-if __name__ == '__main__':
-    db_session.global_init("db/hosting.sql")
-    db_sess = db_session.create_session()
-    api.add_resource(UsersResource, '/api/users')
-    api.add_resource(UserListResource, '/api/users/<int:user_id>')
-    api.add_resource(LikeResource, '/api/like/<int:video_id>')
-    api.add_resource(DislikeResource, '/api/dislike/<int:video_id>')
-    api.add_resource(NotLikeResource, '/api/not_like/<int:video_id>')
-    api.add_resource(FollowResource, '/api/follow/<int:user_id>')
-    api.add_resource(UnfollowResource, '/api/unfollow/<int:user_id>')
-    api.add_resource(NotFollowResource, '/api/not_follow/<int:user_id>')
-    main()
+db_session.global_init("db/hosting.sql")
+db_sess = db_session.create_session()
+api.add_resource(UsersResource, '/api/users')
+api.add_resource(UserListResource, '/api/users/<int:user_id>')
+api.add_resource(LikeResource, '/api/like/<int:video_id>')
+api.add_resource(DislikeResource, '/api/dislike/<int:video_id>')
+api.add_resource(NotLikeResource, '/api/not_like/<int:video_id>')
+api.add_resource(FollowResource, '/api/follow/<int:user_id>')
+api.add_resource(UnfollowResource, '/api/unfollow/<int:user_id>')
+api.add_resource(NotFollowResource, '/api/not_follow/<int:user_id>')
