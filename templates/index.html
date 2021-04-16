@@ -1,31 +1,45 @@
 {% extends "base.html" %}
 
 {% block content %}
-    <div>
-        <h2>Last Videos</h2>
-        {% for vid in last_videos %}
-            <div style="width: 33%">
-                <a href="/video/{{ vid.id }}"><img src="static/pre/{{ vid.id }}.jpg" style="width: 100%"></a>
-                <p><a href="/video/{{ vid.id }}">{{ vid.title }}</a> - <a href="/user/{{ db_sess.query(User).filter(User.id == vid.author).first().id }}">{{ db_sess.query(User).filter(User.id == vid.author).first().name }} {{ db_sess.query(User).filter(User.id == vid.author).first().surname }}</a></p>
+    <div class="container">
+        <div class="row">
+            <h4>Last Videos</h4>
+            <div class="container">
+                <div class="row">
+                    {% for vid in last_videos %}
+                    <div class="col-sm">
+                        <a href="/video/{{ vid.id }}"><img src="static/pre/{{ vid.id }}.jpg" style="width: 100%"></a>
+                        <p><a class="link-dark" href="/video/{{ vid.id }}">{{ vid.title }}</a> - <a class="link-dark" href="/user/{{ db_sess.query(User).filter(User.id == vid.author).first().id }}">{{ db_sess.query(User).filter(User.id == vid.author).first().name }} {{ db_sess.query(User).filter(User.id == vid.author).first().surname }}</a></p>
+                    </div>
+                    {% endfor %}
+                </div>
             </div>
-        {% endfor %}
-    </div>
-    <div>
-        <h2>Best Videos</h2>
-        {% for vid in best_videos %}
-            <div style="width: 33%">
-                <a href="/video/{{ vid.id }}"><img src="static/pre/{{ vid.id }}.jpg" style="width: 100%"></a>
-                <p><a href="/video/{{ vid.id }}">{{ vid.title }}</a> - <a href="/user/{{ db_sess.query(User).filter(User.id == vid.author).first().id }}">{{ db_sess.query(User).filter(User.id == vid.author).first().name }} {{ db_sess.query(User).filter(User.id == vid.author).first().surname }}</a></p>
+        </div>
+        <div class="row">
+            <h4>Best Videos</h4>
+            <div class="container">
+                <div class="row">
+                    {% for vid in best_videos %}
+                    <div class="col-sm">
+                        <a href="/video/{{ vid.id }}"><img src="static/pre/{{ vid.id }}.jpg" style="width: 100%"></a>
+                        <p><a class="link-dark" href="/video/{{ vid.id }}">{{ vid.title }}</a> - <a class="link-dark" href="/user/{{ db_sess.query(User).filter(User.id == vid.author).first().id }}">{{ db_sess.query(User).filter(User.id == vid.author).first().name }} {{ db_sess.query(User).filter(User.id == vid.author).first().surname }}</a></p>
+                    </div>
+                    {% endfor %}
+                </div>
             </div>
-        {% endfor %}
-    </div>
-    <div>
-        <h2>Worst Videos</h2>
-        {% for vid in worst_videos %}
-            <div style="width: 33%">
-                <a href="/video/{{ vid.id }}"><img src="static/pre/{{ vid.id }}.jpg" style="width: 100%"></a>
-                <p><a href="/video/{{ vid.id }}">{{ vid.title }}</a> - <a href="/user/{{ db_sess.query(User).filter(User.id == vid.author).first().id }}">{{ db_sess.query(User).filter(User.id == vid.author).first().name }} {{ db_sess.query(User).filter(User.id == vid.author).first().surname }}</a></p>
+        </div>
+        <div class="row">
+            <h4>Worst Videos</h4>
+            <div class="container">
+                <div class="row">
+                    {% for vid in worst_videos %}
+                    <div class="col-sm">
+                        <a href="/video/{{ vid.id }}"><img src="static/pre/{{ vid.id }}.jpg" style="width: 100%"></a>
+                        <p><a class="link-dark" href="/video/{{ vid.id }}">{{ vid.title }}</a> - <a class="link-dark" href="/user/{{ db_sess.query(User).filter(User.id == vid.author).first().id }}">{{ db_sess.query(User).filter(User.id == vid.author).first().name }} {{ db_sess.query(User).filter(User.id == vid.author).first().surname }}</a></p>
+                    </div>
+                    {% endfor %}
+                </div>
             </div>
-        {% endfor %}
+        </div>
     </div>
 {% endblock %}

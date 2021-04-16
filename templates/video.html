@@ -4,9 +4,125 @@
     <video width="75%" controls>
       <source src="{{ video_src }}" type="video/mp4">
     </video>
-    <h3>{{ current_video.title }} 👍 {{ current_video.likes - current_video.dislikes }} 👎</h3>
-    <h5><a href="/user/{{ author.id }}">{{ author.name }} {{ author.surname }}</a> ➕ {{ author.followers - author.haters }} ➖</h5>
+    <div>
+        {% if authenticated and current_user.id == current_video.author %}
+        <a href="/edit_video/{{ current_video.id }}" class="btn btn-warning" role="button">Редактировать видео</a>
+        <a href="/delete_video/{{ current_video.id }}" class="btn btn-danger" role="button">Удалить видео</a>
+        {% endif %}
+    </div>
+    <h3>
+        {{ current_video.title }}
+        {% if authenticated and current_user.id != current_video.author %}
+            <input onclick="like()" class="btn btn-outline-warning" type="submit" name="like" id="like" value="👍">
+        {% endif %}
+        <span id="likes">{{ current_video.likes - current_video.dislikes }}</span>
+        {% if authenticated and current_user.id != current_video.author %}
+            <input onclick="dislike()" class="btn btn-outline-warning" type="submit" name="dislike" id="dislike" value="👎">
+        {% endif %}
+    </h3>
+    <h5>
+        <a href="/user/{{ author.id }}">{{ author.name }} {{ author.surname }}</a>
+        {% if authenticated and current_user.id != current_video.author %}
+            <input onclick="follow()" class="btn btn-outline-secondary" type="submit" name="follow" id="follow" value="➕">
+        {% endif %}
+        <span id="followers">{{ author.followers - author.haters }}</span>
+        {% if authenticated and current_user.id != current_video.author %}
+            <input onclick="unfollow()" class="btn btn-outline-secondary" type="submit" name="unfollow" id="unfollow" value="➖">
+        {% endif %}
+    </h5>
     {% autoescape false %}
-        <p>{{ current_video.description }}</p>
+    <p>{{ current_video.description }}</p>
     {% endautoescape %}
+    <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js"> </script>
+    <script type=text/javascript>
+        function follow() {
+            var follow = document.getElementById("follow");
+            var unfollow = document.getElementById("unfollow");
+            var followers = document.getElementById("followers");
+            if ( follow.classList.contains('active') )
+            {
+                follow.classList.remove("active");
+                followers.innerHTML = parseInt(followers.innerText) - 1;
+                $.getJSON('/not_follow/{{ current_video.author }}', {}, function(data){});
+            }
+            else
+            {
+                follow.classList.add("active");
+                followers.innerHTML = parseInt(followers.innerText) + 1;
+                $.getJSON('/follow/{{ current_video.author }}', {}, function(data){});
+                if ( unfollow.classList.contains('active') )
+                {
+                    unfollow.classList.remove("active");
+                    followers.innerHTML = parseInt(followers.innerText) + 1;
+                }
+            }
+        }
+        function unfollow() {
+            var follow = document.getElementById("follow");
+            var unfollow = document.getElementById("unfollow");
+            var followers = document.getElementById("followers");
+            if ( unfollow.classList.contains('active') )
+            {
+                unfollow.classList.remove("active");
+                followers.innerHTML = parseInt(followers.innerText) + 1;
+                $.getJSON('/not_follow/{{ current_video.author }}', {}, function(data){});
+            }
+            else
+            {
+                unfollow.classList.add("active");
+                followers.innerHTML = parseInt(followers.innerText) - 1;
+                $.getJSON('/unfollow/{{ current_video.author }}', {}, function(data){});
+                if ( follow.classList.contains('active') )
+                {
+                    follow.classList.remove("active");
+                    followers.innerHTML = parseInt(followers.innerText) - 1;
+                }
+            }
+        }
+
+        function like() {
+            var like = document.getElementById("like");
+            var dislike = document.getElementById("dislike");
+            var likes = document.getElementById("likes");
+            if ( like.classList.contains('active') )
+            {
+                like.classList.remove("active");
+                likes.innerHTML = parseInt(likes.innerText) - 1;
+                $.getJSON('/not_like/{{ current_video.id }}', {}, function(data){});
+            }
+            else
+            {
+                like.classList.add("active");
+                likes.innerHTML = parseInt(likes.innerText) + 1;
+                $.getJSON('/like/{{ current_video.id }}', {}, function(data){});
+                if ( dislike.classList.contains('active') )
+                {
+                    dislike.classList.remove("active");
+                    likes.innerHTML = parseInt(likes.innerText) + 1;
+                }
+            }
+        }
+        function dislike() {
+            var like = document.getElementById("like");
+            var dislike = document.getElementById("dislike");
+            var likes = document.getElementById("likes");
+            if ( dislike.classList.contains('active') )
+            {
+                dislike.classList.remove("active");
+                likes.innerHTML = parseInt(likes.innerText) + 1;
+                $.getJSON('/not_like/{{ current_video.id }}', {}, function(data){});
+            }
+            else
+            {
+                dislike.classList.add("active");
+                likes.innerHTML = parseInt(likes.innerText) - 1;
+                $.getJSON('/dislike/{{ current_video.id }}', {}, function(data){});
+                if ( like.classList.contains('active') )
+                {
+                    like.classList.remove("active");
+                    likes.innerHTML = parseInt(likes.innerText) - 1;
+                }
+            }
+        }
+    </script>
 {% endblock %}

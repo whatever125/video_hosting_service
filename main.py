@@ -1,4 +1,5 @@
 import os
+import json
 from flask import Flask, render_template, url_for, redirect, request
 from data.videos import Video
 from data.users import User
@@ -7,11 +8,44 @@ from flask_login import LoginManager, login_user, current_user, logout_user, log
 from data.login_form import LoginForm
 from data.register_form import RegisterForm
 from data.video_form import VideoForm
+from flask_restful import reqparse, abort, Api, Resource
+from data.users_resource import UsersResource, UserListResource
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'yandexlyceum_secret_key'
+api = Api(app)
 login_manager = LoginManager()
 login_manager.init_app(app)
+
+
+@app.errorhandler(403)
+def forbidden(e):
+    params = {
+        'title': 'Доступ запрещен',
+        'authenticated': current_user.is_authenticated,
+        'current_user': current_user
+    }
+    return render_template('403.html', **params), 403
+
+
+@app.errorhandler(404)
+def page_not_found(e):
+    params = {
+        'title': 'Страница не найдена',
+        'authenticated': current_user.is_authenticated,
+        'current_user': current_user
+    }
+    return render_template('404.html', **params), 404
+
+
+@app.errorhandler(500)
+def internal_server_error(e):
+    params = {
+        'title': 'Ошибка сервера',
+        'authenticated': current_user.is_authenticated,
+        'current_user': current_user
+    }
+    return render_template('500.html', **params), 500
 
 
 @app.route('/')
@@ -29,7 +63,8 @@ def index():
         'db_sess': db_sess,
         'User': User,
         'Video': Video,
-        'authenticated': current_user.is_authenticated
+        'authenticated': current_user.is_authenticated,
+        'current_user': current_user
     }
     return render_template('index.html', **params)
 
@@ -44,7 +79,8 @@ def login():
     form = LoginForm()
     params = {
         'title': 'Авторизация',
-        'authenticated': current_user.is_authenticated
+        'authenticated': current_user.is_authenticated,
+        'current_user': current_user
     }
     if form.validate_on_submit():
         user = db_sess.query(User).filter(User.login == form.login.data).first()
@@ -62,7 +98,8 @@ def register():
     form = RegisterForm()
     params = {
         'title': 'Регистрация',
-        'authenticated': current_user.is_authenticated
+        'authenticated': current_user.is_authenticated,
+        'current_user': current_user
     }
     if form.validate_on_submit():
         user = db_sess.query(User).filter(User.login == form.login.data).all()
@@ -87,10 +124,12 @@ def register():
 
 
 @app.route('/logout')
-@login_required
 def logout():
-    logout_user()
-    return redirect("/")
+    if current_user.is_authenticated:
+        logout_user()
+        return redirect('/')
+    else:
+        return forbidden('')
 
 
 @app.route('/video/<video_id>')
@@ -106,17 +145,21 @@ def video(video_id):
         'video_id': video_id,
         'video_src': url_for("static", filename=f'vid/{video_id}.mp4'),
         'author': author,
-        'authenticated': current_user.is_authenticated
+        'authenticated': current_user.is_authenticated,
+        'current_user': current_user
     }
     return render_template('video.html', **params)
 
 
 @app.route('/add_video', methods=['GET', 'POST'])
 def add_video():
+    if not current_user.is_authenticated:
+        return forbidden('')
     form = VideoForm()
     params = {
         'title': 'Загрузка видео',
-        'authenticated': current_user.is_authenticated
+        'authenticated': current_user.is_authenticated,
+        'current_user': current_user
     }
     if form.validate_on_submit():
         video_file = request.files['video']
@@ -145,32 +188,32 @@ def add_video():
 def edit_video(video_id):
     form = VideoForm()
     video = db_sess.query(Video).filter(Video.id == video_id).first()
-    if current_user.id != video.author:
-        return redirect('/')
+    if not current_user.is_authenticated or current_user.id != video.author:
+        return forbidden('')
     params = {
         'title': 'Редактирование видео',
         'video': video,
         'description': '\n'.join(video.description.split('<br>')),
-        'authenticated': current_user.is_authenticated
+        'authenticated': current_user.is_authenticated,
+        'current_user': current_user
     }
     if form.validate_on_submit():
-        if form.validate_on_submit():
-            video_file = request.files['video']
-            if not video_file.filename.lower().endswith('.mp4'):
-                return render_template('edit_video.html',
-                                       message='Данный формат файла не поддерживается',
-                                       form=form, **params)
-            preview_file = request.files['preview']
-            if not preview_file.filename.lower().endswith('.jpg'):
-                return render_template('edit_video.html',
-                                       message='Данный формат файла не поддерживается',
-                                       form=form, **params)
-            video.title = form.title.data
-            video.description = '<br>'.join(form.description.data.split('\n'))
-            db_sess.commit()
-            video_file.save(os.path.join('static/vid', f'{video.id}.mp4'))
-            preview_file.save(os.path.join('static/pre', f'{video.id}.jpg'))
-            return redirect('/')
+        video_file = request.files['video']
+        if not video_file.filename.lower().endswith('.mp4'):
+            return render_template('edit_video.html',
+                                   message='Данный формат файла не поддерживается',
+                                   form=form, **params)
+        preview_file = request.files['preview']
+        if not preview_file.filename.lower().endswith('.jpg'):
+            return render_template('edit_video.html',
+                                   message='Данный формат файла не поддерживается',
+                                   form=form, **params)
+        video.title = form.title.data
+        video.description = '<br>'.join(form.description.data.split('\n'))
+        db_sess.commit()
+        video_file.save(os.path.join('static/vid', f'{video.id}.mp4'))
+        preview_file.save(os.path.join('static/pre', f'{video.id}.jpg'))
+        return redirect('/')
     return render_template('edit_video.html', form=form, **params)
 
 
@@ -190,14 +233,64 @@ def delete_video(video_id):
 def user(user_id):
     user_id = int(user_id)
     user = db_sess.query(User).filter(User.id == user_id).first()
-    videos = db_sess.query(Video).filter(Video.author == user_id).all()
+    videos = db_sess.query(Video).filter(Video.author == user_id).all()[::-1]
     params = {
         'title': f'{user.name} {user.surname}',
         'user': user,
-        'videos': videos,
-        'authenticated': current_user.is_authenticated
+        'videos': [videos[i * 3:i * 3 + 3] for i in range(len(videos) // 3)] +
+                  [videos[(len(videos) // 3) * 3:]],
+        'authenticated': current_user.is_authenticated,
+        'current_user': current_user
     }
     return render_template('user.html', **params)
+
+
+@app.route('/like/<video_id>')
+def like(video_id):
+    if not current_user.is_authenticated:
+        return forbidden('')
+    print('like', video_id)
+    return redirect(f'/video/{video_id}')
+
+
+@app.route('/not_like/<video_id>')
+def not_like(video_id):
+    if not current_user.is_authenticated:
+        return forbidden('')
+    print('not_like', video_id)
+    return ''
+
+
+@app.route('/dislike/<video_id>')
+def dislike(video_id):
+    if not current_user.is_authenticated:
+        return forbidden('')
+    print('dislike', video_id)
+    return ''
+
+
+@app.route('/follow/<user_id>')
+def follow(user_id):
+    if not current_user.is_authenticated or current_user.id == user_id:
+        return forbidden('')
+    print('follow', user_id)
+    return ''
+
+
+@app.route('/not_follow/<user_id>')
+def not_follow(user_id):
+    if not current_user.is_authenticated or current_user.id == user_id:
+        return forbidden('')
+    print('not_follow', user_id)
+    return ''
+
+
+@app.route('/unfollow/<user_id>')
+def unfollow(user_id):
+    if not current_user.is_authenticated or current_user.id == user_id:
+        return forbidden('')
+    print('unfollow', user_id)
+    return ''
 
 
 def main():
@@ -207,4 +300,6 @@ def main():
 if __name__ == '__main__':
     db_session.global_init("db/hosting.sql")
     db_sess = db_session.create_session()
+    api.add_resource(UsersResource, '/api/users')
+    api.add_resource(UserListResource, '/api/users/<int:user_id>')
     main()

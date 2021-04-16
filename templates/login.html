@@ -4,31 +4,41 @@
     <h2>Авторизация</h2>
     <form action="" method="post">
         {{ form.hidden_tag() }}
-        <p>
-            {{ form.login.label }}<br>
-            {{ form.login(class="form-control", type="login") }}<br>
-            {% for error in form.login.errors %}
+        <div class="row mb-3">
+            <div class="col-sm-2 col-form-label">
+                {{ form.login.label }}
+            </div>
+            <div class="col-sm-10">
+                {{ form.login(class="form-control", type="login") }}
+                {% for error in form.login.errors %}
                 <div class="alert alert-danger" role="alert">
                     {{ error }}
                 </div>
-            {% endfor %}
-        </p>
-        <p>
-            {{ form.password.label }}<br>
-            {{ form.password(class="form-control", type="password") }}<br>
-            {% for error in form.password.errors %}
+                {% endfor %}
+            </div>
+        </div>
+        <div class="row mb-3">
+            <div class="col-sm-2 col-form-label">
+                {{ form.password.label }}
+            </div>
+            <div class="col-sm-10">
+                {{ form.password(class="form-control", type="password") }}
+                {% for error in form.password.errors %}
                 <div class="alert alert-danger" role="alert">
                     {{ error }}
                 </div>
-            {% endfor %}
-        </p>
-        <p>
-            {{ form.remember_me() }}
-            {{ form.remember_me.label }}
-        </p>
-        <p>
+                {% endfor %}
+            </div>
+        </div>
+        <div class="row mb-3">
+            <div class="col-sm-10 offset-sm-2">
+                {{ form.remember_me() }}
+                {{ form.remember_me.label }}
+            </div>
+        </div>
+        <div>
             {{ form.submit(type="submit", class="btn btn-primary") }}
-        </p>
+        </div>
         <div>
             {{ message }}
         </div>

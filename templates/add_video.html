@@ -1,48 +1,64 @@
 {% extends "base.html" %}
 
 {% block content %}
-    <h1>Загрузка видео</h1>
+    <h2>Загрузка видео</h2>
     <form action="" method="post" enctype="multipart/form-data">
         {{ form.hidden_tag() }}
-        <p>
-            {{ form.title.label }}<br>
-            {{ form.title(class="form-control", type="title") }}<br>
-            {% for error in form.title.errors %}
+        <div class="row mb-3">
+            <div class="col-sm-2 col-form-label">
+                {{ form.title.label }}
+            </div>
+            <div class="col-sm-10">
+                {{ form.title(class="form-control", type="title") }}
+                {% for error in form.title.errors %}
                 <div class="alert alert-danger" role="alert">
                     {{ error }}
                 </div>
-            {% endfor %}
-        </p>
-        <p>
-            {{ form.description.label }}<br>
-            {{ form.description(class="form-control", type="description") }}<br>
-            {% for error in form.description.errors %}
+                {% endfor %}
+            </div>
+        </div>
+        <div class="row mb-3">
+            <div class="col-sm-2 col-form-label">
+                {{ form.description.label }}
+            </div>
+            <div class="col-sm-10">
+                {{ form.description(class="form-control", type="description") }}
+                {% for error in form.description.errors %}
                 <div class="alert alert-danger" role="alert">
                     {{ error }}
                 </div>
-            {% endfor %}
-        </p>
-        <p>
-            {{ form.video.label }}<br>
-            {{ form.video(class="form-control", type="file") }}<br>
-            {% for error in form.video.errors %}
+                {% endfor %}
+            </div>
+        </div>
+        <div class="row mb-3">
+            <div class="col-sm-2 col-form-label">
+                {{ form.video.label }}
+            </div>
+            <div class="col-sm-10">
+                {{ form.video(class="form-control", type="file") }}
+                {% for error in form.video.errors %}
                 <div class="alert alert-danger" role="alert">
                     {{ error }}
                 </div>
-            {% endfor %}
-        </p>
-        <p>
-            {{ form.preview.label }}<br>
-            {{ form.preview(class="form-control", type="file") }}<br>
-            {% for error in form.preview.errors %}
+                {% endfor %}
+            </div>
+        </div>
+        <div class="row mb-3">
+            <div class="col-sm-2 col-form-label">
+                {{ form.preview.label }}
+            </div>
+            <div class="col-sm-10">
+                {{ form.preview(class="form-control", type="file") }}
+                {% for error in form.preview.errors %}
                 <div class="alert alert-danger" role="alert">
                     {{ error }}
                 </div>
-            {% endfor %}
-        </p>
-        <p>
+                {% endfor %}
+            </div>
+        </div>
+        <div class="">
             {{ form.submit(type="submit", class="btn btn-primary") }}
-        </p>
+        </div>
         <div>
             {{ message }}
         </div>

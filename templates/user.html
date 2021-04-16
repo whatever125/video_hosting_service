@@ -1,14 +1,32 @@
 {% extends "base.html" %}
 
 {% block content %}
-    <h2>{{ user.name }} {{ user.surname }} ➕ {{ user.followers - user.haters }} ➖</h2>
+    <h2>
+        {{ user.name }} {{ user.surname }}
+        {% if authenticated and current_user.id != user.id %}
+            ➕
+        {% endif %}
+        {{ user.followers - user.haters }}
+        {% if authenticated and current_user.id != user.id %}
+            ➖
+        {% endif %}
+    </h2>
+    {% if authenticated and current_user.id == user.id %}
+        <a href="/add_video" class="btn btn-primary" role="button">Добавить видео</a>
+    {% endif %}
     <div>
-        <h2>Last Videos</h2>
-        {% for vid in videos %}
-            <div style="width: 50%">
-                <a href="/video/{{ vid.id }}"><img src="/static/pre/{{ vid.id }}.jpg" style="width: 100%"></a>
-                <a href="/video/{{ vid.id }}">{{ vid.title }}</a>
+        <h2>Все видео</h2>
+        <div class="container">
+            {% for row in videos %}
+            <div class="row">
+                {% for vid in row %}
+                <div class="col-4">
+                    <a href="/video/{{ vid.id }}"><img src="/static/pre/{{ vid.id }}.jpg" style="width: 100%"></a>
+                    <a href="/video/{{ vid.id }}" class="link-dark">{{ vid.title }}</a>
+                </div>
+                {% endfor %}
             </div>
-        {% endfor %}
+            {% endfor %}
+        </div>
     </div>
 {% endblock %}
