@@ -1,41 +1,57 @@
 {% extends "base.html" %}
 
 {% block content %}
-    <video width="75%" controls>
-      <source src="{{ video_src }}" type="video/mp4">
-    </video>
+    <div class="row">
+        <div class="col">
+            <video width="100%" controls>
+              <source src="{{ video_src }}" type="video/mp4">
+            </video>
+        </div>
+    </div>
+    {% if authenticated and current_user.id == current_video.author %}
     <div>
-        {% if authenticated and current_user.id == current_video.author %}
         <a href="/edit_video/{{ current_video.id }}" class="btn btn-warning" role="button">Изменить кассету</a>
         <a href="/delete_video/{{ current_video.id }}" class="btn btn-danger" role="button">Выбросить кассету</a>
-        {% endif %}
     </div>
-    <h3>
-        {{ current_video.title }}
-        <span id="likes">{{ current_video.likes }}</span>
-        {% if authenticated and current_user.id != current_video.author %}
-            <button onclick="like()" class="btn btn-outline-danger {% if like %} active {% endif %}" type="submit" name="like" id="like">
+    {% endif %}
+    <div class="row">
+        <div class="col-auto">
+            <h3>
+                {{ current_video.title }}
+            </h3>
+        </div>
+        <div class="col-auto">
+            <button onclick="like()" class="btn btn-outline-danger btn-sm {% if like %} active {% endif %}" type="submit" name="like" id="like" {% if not authenticated or current_user.id == current_video.author %} disabled {% endif %}>
                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-heart-fill" viewBox="0 0 16 16">
                     <path fill-rule="evenodd" d="M8 1.314C12.438-3.248 23.534 4.735 8 15-7.534 4.736 3.562-3.248 8 1.314z"/>
                 </svg>
+                <span id="likes">{{ current_video.likes }}</span>
             </button>
-        {% endif %}
-    </h3>
-    <h5>
-        <a href="/user/{{ author.id }}" class="text-decoration-none text-dark">{{ author.name }} {{ author.surname }}</a>
-        <span id="followers">{{ author.followers }}</span>
-        {% if authenticated and current_user.id != current_video.author %}
-            <button onclick="follow()" class="btn btn-outline-secondary {% if subscription %} active {% endif %}" type="submit" name="follow" id="follow">
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-auto">
+            <h4>
+                <a href="/user/{{ author.id }}" class="text-decoration-none text-dark">{{ author.name }} {{ author.surname }}</a>
+            </h4>
+        </div>
+        <div class="col-auto">
+            <button onclick="follow()" class="btn btn-outline-danger btn-sm {% if subscription %} active {% endif %}" type="submit" name="follow" id="follow" {% if not authenticated or current_user.id == current_video.author %} disabled {% endif %}>
                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-person-plus-fill" viewBox="0 0 16 16">
                     <path d="M1 14s-1 0-1-1 1-4 6-4 6 3 6 4-1 1-1 1H1zm5-6a3 3 0 1 0 0-6 3 3 0 0 0 0 6z"/>
                     <path fill-rule="evenodd" d="M13.5 5a.5.5 0 0 1 .5.5V7h1.5a.5.5 0 0 1 0 1H14v1.5a.5.5 0 0 1-1 0V8h-1.5a.5.5 0 0 1 0-1H13V5.5a.5.5 0 0 1 .5-.5z"/>
                 </svg>
+                <span id="followers">{{ author.followers }}</span>
             </button>
-        {% endif %}
-    </h5>
-    {% autoescape false %}
-    <p>{{ current_video.description }}</p>
-    {% endautoescape %}
+        </div>
+    </div>
+    <div class="row">
+        <div class="col">
+            {% autoescape false %}
+            <p>{{ current_video.description }}</p>
+            {% endautoescape %}
+        </div>
+    </div>
     <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
     <script type=text/javascript>
         function follow() {

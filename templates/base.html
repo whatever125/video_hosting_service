@@ -27,27 +27,27 @@
                 <div class="collapse navbar-collapse" id="navbarSupportedContent">
                     <ul class="navbar-nav me-auto mb-2 mb-lg-0">
                         <li class="nav-item">
-                            <a class="nav-link active" href="/">Главная</a>
+                            <a class="nav-link" href="/">Главная</a>
                         </li>
                         {% if authenticated %}
                             <li class="nav-item">
-                                <a class="nav-link active" href="/user/{{ current_user.id }}">Моя медиатека</a>
+                                <a class="nav-link" href="/user/{{ current_user.id }}">Моя медиатека</a>
                             </li>
                             <li class="nav-item">
-                                <a class="nav-link active" href="/">Подписки</a>
+                                <a class="nav-link" href="/">Любимое</a>
                             </li>
                             <li class="nav-item">
-                                <a class="nav-link active" href="/">Отписки</a>
+                                <a class="nav-link" href="/">Люди</a>
                             </li>
                             <li class="nav-item">
-                                <a class="nav-link active" href="/logout">Выйти</a>
+                                <a class="nav-link" href="/logout">Выйти</a>
                             </li>
                         {% else %}
                             <li class="nav-item">
-                                <a class="nav-link active" href="/login">Войти</a>
+                                <a class="nav-link" href="/login">Войти</a>
                             </li>
                             <li class="nav-item">
-                                <a class="nav-link active" href="/register">Зарегестрироваться</a>
+                                <a class="nav-link" href="/register">Зарегестрироваться</a>
                             </li>
                         {% endif %}
                     </ul>
