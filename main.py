@@ -1,6 +1,8 @@
 import os
 import json
-from flask import Flask, render_template, url_for, redirect, request
+import random
+from passlib.context import CryptContext
+from flask import Flask, render_template, url_for, redirect, request, send_from_directory
 from data.videos import Video
 from data.users import User
 from data import db_session
@@ -10,14 +12,28 @@ from data.register_form import RegisterForm
 from data.video_form import VideoForm
 from flask_restful import Api
 from data.users_resource import UsersResource, UserListResource
-from data.likes_resource import LikeResource, DislikeResource, NotLikeResource
-from data.subscriptions_resource import FollowResource, UnfollowResource, NotFollowResource
+from data.likes_resource import LikeResource, NotLikeResource
+from data.subscriptions_resource import FollowResource, NotFollowResource
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'yandexlyceum_secret_key'
+
 api = Api(app)
+
 login_manager = LoginManager()
 login_manager.init_app(app)
+
+pwd_context = CryptContext(
+        schemes=["pbkdf2_sha256"],
+        default="pbkdf2_sha256",
+        pbkdf2_sha256__default_rounds=30000
+)
+
+
+@app.route('/favicon.ico')
+def favicon():
+    return send_from_directory(os.path.join(app.root_path, 'static/img'),
+                               'favicon.ico', mimetype='image/vnd.microsoft.icon')
 
 
 @app.errorhandler(403)
@@ -69,13 +85,15 @@ def internal_server_error(e):
 def index():
     all_videos = db_sess.query(Video).all()
     last_videos = all_videos[len(all_videos) - 3:][::-1]
-    best_videos = sorted(all_videos, key=lambda x: -(x.likes - x.dislikes))[:3]
-    worst_videos = sorted(all_videos, key=lambda x: x.likes - x.dislikes)[:3]
+    best_videos = sorted(all_videos, key=lambda x: -x.likes)[:3]
+    underrated_videos = list(filter(lambda x: x.likes == 0, all_videos))
+    underrated_videos = underrated_videos[len(underrated_videos) - 3:][::-1]
     params = {
-        'title': 'Home page',
+        'title': 'VHS',
         'last_videos': last_videos,
         'best_videos': best_videos,
-        'worst_videos': worst_videos,
+        'underrated_videos': underrated_videos,
+        'user': user,
         'db_sess': db_sess,
         'User': User,
         'Video': Video,
@@ -101,8 +119,8 @@ def login():
         'current_user': current_user
     }
     if form.validate_on_submit():
-        user = db_sess.query(User).get(form.login.data)
-        if user and user.password == form.password.data:
+        user = db_sess.query(User).filter(User.login == form.login.data).first()
+        if user and pwd_context.verify(form.password.data, user.password):
             login_user(user, remember=form.remember_me.data)
             return redirect('/')
         return render_template('login.html',
@@ -133,7 +151,7 @@ def register():
                                    form=form, **params)
         user = User()
         user.login = form.login.data
-        user.password = form.password.data
+        user.password = pwd_context.hash(form.password.data)
         user.name = form.name.data
         user.surname = form.surname.data
         db_sess.add(user)
@@ -158,21 +176,15 @@ def video(video_id):
     title = current_video.title
     author_id = current_video.author
     author = db_sess.query(User).get(author_id)
-    like = 0
-    subscription = 0
+    like = False
+    subscription = False
     if current_user.is_authenticated:
         likes = json.loads(current_user.likes)
-        dislikes = json.loads(current_user.dislikes)
         subscriptions = json.loads(current_user.subscriptions)
-        unsubscriptions = json.loads(current_user.unsubscriptions)
         if video_id in likes:
-            like = 1
-        elif video_id in dislikes:
-            like = -1
+            like = True
         if author_id in subscriptions:
-            subscription = 1
-        elif author_id in unsubscriptions:
-            subscription = -1
+            subscription = True
     params = {
         'title': f'{title} - {author.name} {author.surname}',
         'current_video': current_video,
@@ -193,7 +205,7 @@ def add_video():
         return forbidden('')
     form = VideoForm()
     params = {
-        'title': 'Загрузка видео',
+        'title': 'Добавление кассеты',
         'authenticated': current_user.is_authenticated,
         'current_user': current_user
     }
@@ -201,12 +213,12 @@ def add_video():
         video_file = request.files['video']
         if not video_file.filename.lower().endswith('.mp4'):
             return render_template('add_video.html',
-                                   message='Данный формат файла не поддерживается',
+                                   message='Данный формат видео не поддерживается',
                                    form=form, **params)
         preview_file = request.files['preview']
         if not preview_file.filename.lower().endswith('.jpg'):
             return render_template('add_video.html',
-                                   message='Данный формат файла не поддерживается',
+                                   message='Данный формат обложки не поддерживается',
                                    form=form, **params)
         video = Video()
         video.title = form.title.data
@@ -227,7 +239,7 @@ def edit_video(video_id):
     if not current_user.is_authenticated or current_user.id != video.author:
         return forbidden('')
     params = {
-        'title': 'Редактирование видео',
+        'title': 'Изменение кассеты',
         'video': video,
         'description': '\n'.join(video.description.split('<br>')),
         'authenticated': current_user.is_authenticated,
@@ -237,12 +249,12 @@ def edit_video(video_id):
         video_file = request.files['video']
         if not video_file.filename.lower().endswith('.mp4'):
             return render_template('edit_video.html',
-                                   message='Данный формат файла не поддерживается',
+                                   message='Данный формат видео не поддерживается',
                                    form=form, **params)
         preview_file = request.files['preview']
         if not preview_file.filename.lower().endswith('.jpg'):
             return render_template('edit_video.html',
-                                   message='Данный формат файла не поддерживается',
+                                   message='Данный формат обложки не поддерживается',
                                    form=form, **params)
         video.title = form.title.data
         video.description = '<br>'.join(form.description.data.split('\n'))
@@ -262,21 +274,18 @@ def delete_video(video_id):
     db_sess.commit()
     os.remove(os.path.join('static/vid', f'{video.id}.mp4'))
     os.remove(os.path.join('static/pre', f'{video.id}.jpg'))
-    return redirect('/')
+    return redirect(f'/user/{current_user.id}')
 
 
 @app.route('/user/<int:user_id>')
 def user(user_id):
     user = db_sess.query(User).get(user_id)
     videos = db_sess.query(Video).filter(Video.author == user_id).all()[::-1]
-    subscription = 0
+    subscription = False
     if current_user.is_authenticated:
         subscriptions = json.loads(current_user.subscriptions)
-        unsubscriptions = json.loads(current_user.unsubscriptions)
         if user_id in subscriptions:
-            subscription = 1
-        elif user_id in unsubscriptions:
-            subscription = -1
+            subscription = True
     params = {
         'title': f'{user.name} {user.surname}',
         'user': user,
@@ -289,13 +298,30 @@ def user(user_id):
     return render_template('user.html', **params)
 
 
+@app.route('/search')
+def search():
+    query = request.args['search']
+    videos = db_sess.query(Video).filter(Video.title == query).all()
+    params = {
+        'title': f'Поиск: {query}',
+        'query': query,
+        'videos': videos,
+        'db_sess': db_sess,
+        'User': User,
+        'authenticated': current_user.is_authenticated,
+        'current_user': current_user
+    }
+    return render_template('search.html', **params)
+
+
 db_session.global_init("db/hosting.sql")
 db_sess = db_session.create_session()
 api.add_resource(UsersResource, '/api/users')
 api.add_resource(UserListResource, '/api/users/<int:user_id>')
 api.add_resource(LikeResource, '/api/like/<int:video_id>')
-api.add_resource(DislikeResource, '/api/dislike/<int:video_id>')
 api.add_resource(NotLikeResource, '/api/not_like/<int:video_id>')
 api.add_resource(FollowResource, '/api/follow/<int:user_id>')
-api.add_resource(UnfollowResource, '/api/unfollow/<int:user_id>')
 api.add_resource(NotFollowResource, '/api/not_follow/<int:user_id>')
+
+if __name__ == '__main__':
+    app.run()

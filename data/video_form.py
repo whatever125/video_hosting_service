@@ -4,8 +4,8 @@ from wtforms import SubmitField, StringField, TextAreaField, FileField
 
 
 class VideoForm(FlaskForm):
-    title = StringField('Название', validators=[DataRequired()])
+    title = StringField('Название кассеты', validators=[DataRequired()])
     description = TextAreaField('Описание', validators=[])
     video = FileField('Видео', validators=[DataRequired()])
-    preview = FileField('Превью', validators=[DataRequired()])
+    preview = FileField('Обложка', validators=[DataRequired()])
     submit = SubmitField('Загрузить')

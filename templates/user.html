@@ -1,28 +1,49 @@
 {% extends "base.html" %}
 
 {% block content %}
-    <h2>
-        {{ user.name }} {{ user.surname }}
-        {% if authenticated and current_user.id != user.id %}
-            <input onclick="follow()" class="btn btn-outline-secondary {% if subscription > 0 %} active {% endif %}" type="submit" name="follow" id="follow" value="➕">
-        {% endif %}
-        <span id="followers">{{ user.followers - user.haters }}</span>
-        {% if authenticated and current_user.id != user.id %}
-            <input onclick="unfollow()" class="btn btn-outline-secondary {% if subscription < 0 %} active {% endif %}" type="submit" name="unfollow" id="unfollow" value="➖">
-        {% endif %}
-    </h2>
-    {% if authenticated and current_user.id == user.id %}
-        <a href="/add_video" class="btn btn-primary" role="button">Добавить видео</a>
-    {% endif %}
-    <div>
-        <h2>Все видео</h2>
-        <div class="container">
+    <div class="row">
+        <div class="col-sm-auto">
+            <h2>
+                {{ user.name }} {{ user.surname }}
+            </h2>
+        </div>
+        <div class="col-sm-auto">
+            <h2 class="text-secondary">
+                #{{ user.login }}
+            </h2>
+        </div>
+    </div>
+    <div class="row">
+        <h3>
+            <span id="followers">{{ user.followers }}</span> подписчиков
+            {% if authenticated and current_user.id != user.id %}
+                <button onclick="follow()" class="btn btn-outline-secondary {% if subscription %} active {% endif %}" type="submit" name="follow" id="follow">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-person-plus-fill" viewBox="0 0 16 16">
+                        <path d="M1 14s-1 0-1-1 1-4 6-4 6 3 6 4-1 1-1 1H1zm5-6a3 3 0 1 0 0-6 3 3 0 0 0 0 6z"/>
+                        <path fill-rule="evenodd" d="M13.5 5a.5.5 0 0 1 .5.5V7h1.5a.5.5 0 0 1 0 1H14v1.5a.5.5 0 0 1-1 0V8h-1.5a.5.5 0 0 1 0-1H13V5.5a.5.5 0 0 1 .5-.5z"/>
+                    </svg>
+                </button>
+            {% endif %}
+        </h3>
+    </div>
+    <div class="row">
+        <div class="col-sm-auto">
+            {% if authenticated and current_user.id == user.id %}
+                <a href="/add_video" class="btn btn-primary" role="button">Добавить кассету</a>
+            {% endif %}
+        </div>
+    </div>
+    <div class="row">
+        <div class="row">
+            <h4>Все кассеты</h4>
+        </div>
+        <div class="row">
             {% for row in videos %}
             <div class="row">
                 {% for vid in row %}
                 <div class="col-4">
                     <a href="/video/{{ vid.id }}"><img src="/static/pre/{{ vid.id }}.jpg" style="width: 100%"></a>
-                    <a href="/video/{{ vid.id }}" class="link-dark">{{ vid.title }}</a>
+                    <a href="/video/{{ vid.id }}" class="text-decoration-none text-dark">{{ vid.title }}</a>
                 </div>
                 {% endfor %}
             </div>
@@ -50,28 +71,6 @@
                 {
                     unfollow.classList.remove("active");
                     followers.innerHTML = parseInt(followers.innerText) + 1;
-                }
-            }
-        }
-        function unfollow() {
-            var follow = document.getElementById("follow");
-            var unfollow = document.getElementById("unfollow");
-            var followers = document.getElementById("followers");
-            if ( unfollow.classList.contains('active') )
-            {
-                unfollow.classList.remove("active");
-                followers.innerHTML = parseInt(followers.innerText) + 1;
-                $.post('/api/not_follow/{{ user.id }}');
-            }
-            else
-            {
-                unfollow.classList.add("active");
-                followers.innerHTML = parseInt(followers.innerText) - 1;
-                $.post('/api/unfollow/{{ user.id }}');
-                if ( follow.classList.contains('active') )
-                {
-                    follow.classList.remove("active");
-                    followers.innerHTML = parseInt(followers.innerText) - 1;
                 }
             }
         }

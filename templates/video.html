@@ -6,34 +6,37 @@
     </video>
     <div>
         {% if authenticated and current_user.id == current_video.author %}
-        <a href="/edit_video/{{ current_video.id }}" class="btn btn-warning" role="button">Редактировать видео</a>
-        <a href="/delete_video/{{ current_video.id }}" class="btn btn-danger" role="button">Удалить видео</a>
+        <a href="/edit_video/{{ current_video.id }}" class="btn btn-warning" role="button">Изменить кассету</a>
+        <a href="/delete_video/{{ current_video.id }}" class="btn btn-danger" role="button">Выбросить кассету</a>
         {% endif %}
     </div>
     <h3>
         {{ current_video.title }}
+        <span id="likes">{{ current_video.likes }}</span>
         {% if authenticated and current_user.id != current_video.author %}
-            <input onclick="like()" class="btn btn-outline-warning {% if like > 0 %} active {% endif %}" type="submit" name="like" id="like" value="👍">
-        {% endif %}
-        <span id="likes">{{ current_video.likes - current_video.dislikes }}</span>
-        {% if authenticated and current_user.id != current_video.author %}
-            <input onclick="dislike()" class="btn btn-outline-warning {% if like < 0 %} active {% endif %}" type="submit" name="dislike" id="dislike" value="👎">
+            <button onclick="like()" class="btn btn-outline-danger {% if like %} active {% endif %}" type="submit" name="like" id="like">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-heart-fill" viewBox="0 0 16 16">
+                    <path fill-rule="evenodd" d="M8 1.314C12.438-3.248 23.534 4.735 8 15-7.534 4.736 3.562-3.248 8 1.314z"/>
+                </svg>
+            </button>
         {% endif %}
     </h3>
     <h5>
-        <a href="/user/{{ author.id }}">{{ author.name }} {{ author.surname }}</a>
+        <a href="/user/{{ author.id }}" class="text-decoration-none text-dark">{{ author.name }} {{ author.surname }}</a>
+        <span id="followers">{{ author.followers }}</span>
         {% if authenticated and current_user.id != current_video.author %}
-            <input onclick="follow()" class="btn btn-outline-secondary {% if subscription > 0 %} active {% endif %}" type="submit" name="follow" id="follow" value="➕">
-        {% endif %}
-        <span id="followers">{{ author.followers - author.haters }}</span>
-        {% if authenticated and current_user.id != current_video.author %}
-            <input onclick="unfollow()" class="btn btn-outline-secondary {% if subscription < 0 %} active {% endif %}" type="submit" name="unfollow" id="unfollow" value="➖">
+            <button onclick="follow()" class="btn btn-outline-secondary {% if subscription %} active {% endif %}" type="submit" name="follow" id="follow">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-person-plus-fill" viewBox="0 0 16 16">
+                    <path d="M1 14s-1 0-1-1 1-4 6-4 6 3 6 4-1 1-1 1H1zm5-6a3 3 0 1 0 0-6 3 3 0 0 0 0 6z"/>
+                    <path fill-rule="evenodd" d="M13.5 5a.5.5 0 0 1 .5.5V7h1.5a.5.5 0 0 1 0 1H14v1.5a.5.5 0 0 1-1 0V8h-1.5a.5.5 0 0 1 0-1H13V5.5a.5.5 0 0 1 .5-.5z"/>
+                </svg>
+            </button>
         {% endif %}
     </h5>
     {% autoescape false %}
     <p>{{ current_video.description }}</p>
     {% endautoescape %}
-    <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js"> </script>
+    <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
     <script type=text/javascript>
         function follow() {
             var follow = document.getElementById("follow");
@@ -57,28 +60,6 @@
                 }
             }
         }
-        function unfollow() {
-            var follow = document.getElementById("follow");
-            var unfollow = document.getElementById("unfollow");
-            var followers = document.getElementById("followers");
-            if ( unfollow.classList.contains('active') )
-            {
-                unfollow.classList.remove("active");
-                followers.innerHTML = parseInt(followers.innerText) + 1;
-                $.post('/api/not_follow/{{ current_video.author }}');
-            }
-            else
-            {
-                unfollow.classList.add("active");
-                followers.innerHTML = parseInt(followers.innerText) - 1;
-                $.post('/api/unfollow/{{ current_video.author }}');
-                if ( follow.classList.contains('active') )
-                {
-                    follow.classList.remove("active");
-                    followers.innerHTML = parseInt(followers.innerText) - 1;
-                }
-            }
-        }
 
         function like() {
             var like = document.getElementById("like");
@@ -99,28 +80,6 @@
                 {
                     dislike.classList.remove("active");
                     likes.innerHTML = parseInt(likes.innerText) + 1;
-                }
-            }
-        }
-        function dislike() {
-            var like = document.getElementById("like");
-            var dislike = document.getElementById("dislike");
-            var likes = document.getElementById("likes");
-            if ( dislike.classList.contains('active') )
-            {
-                dislike.classList.remove("active");
-                likes.innerHTML = parseInt(likes.innerText) + 1;
-                $.post('/api/not_like/{{ current_video.id }}');
-            }
-            else
-            {
-                dislike.classList.add("active");
-                likes.innerHTML = parseInt(likes.innerText) - 1;
-                $.post('/api/dislike/{{ current_video.id }}');
-                if ( like.classList.contains('active') )
-                {
-                    like.classList.remove("active");
-                    likes.innerHTML = parseInt(likes.innerText) - 1;
                 }
             }
         }

@@ -11,5 +11,4 @@ class Video(SqlAlchemyBase):
     author = sqlalchemy.Column(sqlalchemy.String, sqlalchemy.ForeignKey("users.id"), nullable=False)
     description = sqlalchemy.Column(sqlalchemy.String, nullable=False, default='')
     likes = sqlalchemy.Column(sqlalchemy.Integer, nullable=False, default=0)
-    dislikes = sqlalchemy.Column(sqlalchemy.Integer, nullable=False, default=0)
     datetime = sqlalchemy.Column(sqlalchemy.DateTime, nullable=False, default=datetime.utcnow)
