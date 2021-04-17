@@ -322,3 +322,6 @@ api.add_resource(LikeResource, '/api/like/<int:video_id>')
 api.add_resource(NotLikeResource, '/api/not_like/<int:video_id>')
 api.add_resource(FollowResource, '/api/follow/<int:user_id>')
 api.add_resource(NotFollowResource, '/api/not_follow/<int:user_id>')
+
+if __name__ == '__main__':
+    app.run()
