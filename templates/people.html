@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+
+{% block content %}
+    <div class="row">
+        <div class="row">
+            <h4>Люди, на которых вы подписаны</h4>
+        </div>
+        <div class="row">
+            {% if empty %}
+                <h5>Вы пока ни на кого не подписаны, но может вы найдете кого-то по душе на <a class="link-dark" href="/">главной</a>?</h5>
+            {% else %}
+                <div class="col-6">
+                     {% for user in subscripted_users %}
+                     <div class="row">
+                         <div class="col-auto">
+                             <h5>
+                                 <a href="/user/{{ user.user.id }}" class="text-decoration-none text-dark">
+                                     {{ user.user.name }} {{ user.user.surname }}
+                                 </a>
+                             </h5>
+                         </div>
+                         <div class="col-auto">
+                             <h5 class="text-secondary">
+                                 #{{ user.user.login }}
+                             </h5>
+                         </div>
+                     </div>
+                     {% endfor %}
+                </div>
+            {% endif %}
+        </div>
+    </div>
+{% endblock %}

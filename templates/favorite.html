@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+
+{% block content %}
+    <div class="row">
+        <div class="row">
+            <h4>Любимые видео</h4>
+        </div>
+        <div class="row">
+            {% if empty %}
+                <h5>Вы пока не добавили ни одного видео в любимые, но может вы найдете что-то по душе на <a class="link-dark" href="/">главной</a>?</h5>
+            {% else %}
+                {% for row in liked_videos %}
+                <div class="row">
+                    {% for vid in row %}
+                    <div class="col-4">
+                        <a href="/video/{{ vid.video.id }}"><img src="static/pre/{{ vid.video.id }}.jpg" style="width: 100%"></a>
+                        <p><a class="text-decoration-none text-dark" href="/video/{{ vid.video.id }}">{{ vid.video.title }}</a> - <a class="text-decoration-none text-dark" href="/user/{{ vid.author.id }}">{{ vid.author.name }} {{ vid.author.surname }}</a></p>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endfor %}
+            {% endif %}
+        </div>
+    </div>
+{% endblock %}

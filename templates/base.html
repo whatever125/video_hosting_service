@@ -20,7 +20,10 @@
     <body style="font-family: 'VHS font 2.0';">
         <nav class="navbar sticky-top navbar-expand-lg navbar-light bg-light">
             <div class="container-fluid">
-                <a class="navbar-brand mb-0 h1" href="/">Video Hosting Service</a>
+                <a class="navbar-brand mb-0 h1" href="/">
+                    VHS
+                    <img src="/static/img/vhs.png" alt="" width="35" height="35">
+                </a>
                 <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
                     <span class="navbar-toggler-icon"></span>
                 </button>
@@ -31,13 +34,16 @@
                         </li>
                         {% if authenticated %}
                             <li class="nav-item">
+                                <a class="nav-link" href="/feed">Лента</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="/favorite">Любимое</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="/people">Люди</a>
+                            </li>
+                            <li class="nav-item">
                                 <a class="nav-link" href="/user/{{ current_user.id }}">Моя медиатека</a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link" href="/">Любимое</a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link" href="/">Люди</a>
                             </li>
                             <li class="nav-item">
                                 <a class="nav-link" href="/logout">Выйти</a>
@@ -52,7 +58,7 @@
                         {% endif %}
                     </ul>
                     <form class="d-flex" action="/search">
-                        <input class="form-control me-2" type="search" name="search" placeholder="Поиск кассет" aria-label="Search">
+                        <input class="form-control me-2" type="search" name="search" placeholder="Поиск" aria-label="Search">
                         <button class="btn btn-outline-success" type="submit">Найти</button>
                     </form>
                 </div>

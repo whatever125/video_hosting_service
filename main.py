@@ -1,6 +1,5 @@
 import os
 import json
-import random
 from passlib.context import CryptContext
 from flask import Flask, render_template, url_for, redirect, request, send_from_directory
 from data.videos import Video
@@ -33,7 +32,7 @@ pwd_context = CryptContext(
 @app.route('/favicon.ico')
 def favicon():
     return send_from_directory(os.path.join(app.root_path, 'static/img'),
-                               'favicon.ico', mimetype='image/vnd.microsoft.icon')
+                               'vhs.ico', mimetype='image/vnd.microsoft.icon')
 
 
 @app.errorhandler(403)
@@ -84,12 +83,18 @@ def internal_server_error(e):
 @app.route('/index')
 def index():
     all_videos = db_sess.query(Video).all()
-    last_videos = all_videos[len(all_videos) - 3:][::-1]
+    if len(all_videos) > 3:
+        last_videos = all_videos[len(all_videos) - 3:][::-1]
+    else:
+        last_videos = all_videos[::-1]
     best_videos = sorted(all_videos, key=lambda x: -x.likes)[:3]
     underrated_videos = list(filter(lambda x: x.likes == 0, all_videos))
-    underrated_videos = underrated_videos[len(underrated_videos) - 3:][::-1]
+    if len(underrated_videos) > 3:
+        underrated_videos = underrated_videos[len(underrated_videos) - 3:][::-1]
+    else:
+        underrated_videos = underrated_videos[::-1]
     params = {
-        'title': 'VHS',
+        'title': 'Video Hosting Service',
         'last_videos': last_videos,
         'best_videos': best_videos,
         'underrated_videos': underrated_videos,
@@ -173,6 +178,13 @@ def logout():
 @app.route('/video/<int:video_id>')
 def video(video_id):
     current_video = db_sess.query(Video).get(video_id)
+    if user is None:
+        return page_not_found('')
+    all_videos = db_sess.query(Video).all()
+    if len(all_videos) > 3:
+        last_videos = all_videos[len(all_videos) - 3:][::-1]
+    else:
+        last_videos = all_videos[::-1]
     title = current_video.title
     author_id = current_video.author
     author = db_sess.query(User).get(author_id)
@@ -193,6 +205,10 @@ def video(video_id):
         'author': author,
         'like': like,
         'subscription': subscription,
+        'last_videos': last_videos,
+        'db_sess': db_sess,
+        'User': User,
+        'Video': Video,
         'authenticated': current_user.is_authenticated,
         'current_user': current_user
     }
@@ -205,7 +221,7 @@ def add_video():
         return forbidden('')
     form = VideoForm()
     params = {
-        'title': 'Добавление кассеты',
+        'title': 'Добавление видео',
         'authenticated': current_user.is_authenticated,
         'current_user': current_user
     }
@@ -239,7 +255,7 @@ def edit_video(video_id):
     if not current_user.is_authenticated or current_user.id != video.author:
         return forbidden('')
     params = {
-        'title': 'Изменение кассеты',
+        'title': 'Изменение видео',
         'video': video,
         'description': '\n'.join(video.description.split('<br>')),
         'authenticated': current_user.is_authenticated,
@@ -280,6 +296,8 @@ def delete_video(video_id):
 @app.route('/user/<int:user_id>')
 def user(user_id):
     user = db_sess.query(User).get(user_id)
+    if user is None:
+        return page_not_found('')
     videos = db_sess.query(Video).filter(Video.author == user_id).all()[::-1]
     subscription = False
     if current_user.is_authenticated:
@@ -292,10 +310,84 @@ def user(user_id):
         'videos': [videos[i * 3:i * 3 + 3] for i in range(len(videos) // 3)] +
                   [videos[(len(videos) // 3) * 3:]],
         'subscription': subscription,
+        'empty': True if len(videos) == 0 else False,
         'authenticated': current_user.is_authenticated,
         'current_user': current_user
     }
     return render_template('user.html', **params)
+
+
+@app.route('/feed')
+def feed():
+    if not current_user.is_authenticated:
+        return forbidden('')
+    subscriptions = json.loads(current_user.subscriptions)
+    videos = []
+    for i in subscriptions:
+        videos += db_sess.query(Video).filter(Video.author == i).all()[::-1][:12]
+    new_videos = sorted(videos, key=lambda x: x.datetime)[::-1]
+    new_videos = [
+        {
+            'video': i,
+            'author': db_sess.query(User).get(i.author)
+        }
+        for i in new_videos
+    ]
+    params = {
+        'title': f'Лента',
+        'new_videos': [new_videos[i * 3:i * 3 + 3] for i in range(len(new_videos) // 3)] +
+                      [new_videos[(len(new_videos) // 3) * 3:]],
+        'empty': True if len(new_videos) == 0 else False,
+        'subscripted': True if len(subscriptions) != 0 else False,
+        'authenticated': current_user.is_authenticated,
+        'current_user': current_user
+    }
+    return render_template('feed.html', **params)
+
+
+@app.route('/favorite')
+def favorite():
+    if not current_user.is_authenticated:
+        return forbidden('')
+    likes = json.loads(current_user.likes)[::-1]
+    liked_videos = [
+        {
+            'video': db_sess.query(Video).get(i),
+            'author': db_sess.query(User).get(db_sess.query(Video).get(i).author)
+        }
+        for i in likes
+    ]
+    params = {
+        'title': f'Любимое',
+        'liked_videos': [liked_videos[i * 3:i * 3 + 3] for i in range(len(liked_videos) // 3)] +
+                        [liked_videos[(len(liked_videos) // 3) * 3:]],
+        'empty': True if len(liked_videos) == 0 else False,
+        'authenticated': current_user.is_authenticated,
+        'current_user': current_user
+    }
+    return render_template('favorite.html', **params)
+
+
+@app.route('/people')
+def people():
+    if not current_user.is_authenticated:
+        return forbidden('')
+    subscriptions = json.loads(current_user.subscriptions)
+    subscripted_users = [
+        {
+            'user': db_sess.query(User).get(i)
+        }
+        for i in subscriptions
+    ]
+    subscripted_users.sort(key=lambda x: x['user'].name + x['user'].surname + x['user'].login)
+    params = {
+        'title': f'Люди',
+        'subscripted_users': subscripted_users,
+        'empty': True if len(subscripted_users) == 0 else False,
+        'authenticated': current_user.is_authenticated,
+        'current_user': current_user
+    }
+    return render_template('people.html', **params)
 
 
 @app.route('/search')
