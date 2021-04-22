@@ -11,6 +11,7 @@ from data.register_form import RegisterForm
 from data.video_form import VideoForm
 from flask_restful import Api
 from data.users_resource import UsersResource, UserListResource
+from data.videos_resource import VideosResource, VideoListResource
 from data.likes_resource import LikeResource, NotLikeResource
 from data.subscriptions_resource import FollowResource, NotFollowResource
 
@@ -23,9 +24,9 @@ login_manager = LoginManager()
 login_manager.init_app(app)
 
 pwd_context = CryptContext(
-        schemes=["pbkdf2_sha256"],
-        default="pbkdf2_sha256",
-        pbkdf2_sha256__default_rounds=30000
+    schemes=["pbkdf2_sha256"],
+    default="pbkdf2_sha256",
+    pbkdf2_sha256__default_rounds=30000
 )
 
 
@@ -408,8 +409,10 @@ def search():
 
 db_session.global_init("db/hosting.sql")
 db_sess = db_session.create_session()
-api.add_resource(UsersResource, '/api/users')
-api.add_resource(UserListResource, '/api/users/<int:user_id>')
+api.add_resource(UsersResource, '/api/users/<int:user_id>')
+api.add_resource(UserListResource, '/api/users')
+api.add_resource(VideosResource, '/api/videos/<int:video_id>')
+api.add_resource(VideoListResource, '/api/videos')
 api.add_resource(LikeResource, '/api/like/<int:video_id>')
 api.add_resource(NotLikeResource, '/api/not_like/<int:video_id>')
 api.add_resource(FollowResource, '/api/follow/<int:user_id>')

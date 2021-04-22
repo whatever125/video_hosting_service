@@ -17,22 +17,16 @@ class UsersResource(Resource):
         abort_if_user_not_found(user_id)
         session = db_session.create_session()
         user = session.query(User).get(user_id)
-        return jsonify({'user': user.to_dict()})
-
-    def delete(self, user_id):
-        abort_if_user_not_found(user_id)
-        session = db_session.create_session()
-        user = session.query(User).get(user_id)
-        session.delete(user)
-        session.commit()
-        return jsonify({'success': 'OK'})
+        return jsonify({'user': user.to_dict(
+            only=('id', 'login', 'name', 'surname', 'followers', 'datetime'))})
 
 
 class UserListResource(Resource):
     def get(self):
         session = db_session.create_session()
         user = session.query(User).all()
-        return jsonify({'user': [item.to_dict() for item in user]})
+        return jsonify({'user': [item.to_dict(
+            only=('id', 'login', 'name', 'surname', 'followers', 'datetime')) for item in user]})
 
     def post(self):
         args = parser.parse_args()
