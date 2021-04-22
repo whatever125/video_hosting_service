@@ -22,7 +22,7 @@
                 {{ form.description.label }}
             </div>
             <div class="col-sm-10">
-                {{ form.description(class="form-control", type="text", value=description) }}
+                <textarea class="form-control" id="description" name="description">{{ description }}</textarea>
                 {% for error in form.description.errors %}
                 <div class="alert alert-danger" role="alert">
                     {{ error }}
