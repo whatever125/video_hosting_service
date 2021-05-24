@@ -8,6 +8,7 @@ from flask_login import current_user
 
 
 def abort_if_video_not_found(video_id):
+    """Возвращает ошибку 404 если видео не найдено"""
     session = db_session.create_session()
     video = session.query(Video).get(video_id)
     if not video:
@@ -15,12 +16,16 @@ def abort_if_video_not_found(video_id):
 
 
 def abort_if_user_not_authenticated():
+    """Возвращает ошибку 403 если пользователь не аутентифицирован"""
     if not current_user.is_authenticated:
         abort(403, message=f"User is not authenticated")
 
 
 class LikeResource(Resource):
+    """Создает ресурс API для работы с добавлением видео в любимые"""
+
     def post(self, video_id):
+        """Добавляет видео в любимые"""
         abort_if_user_not_authenticated()
         abort_if_video_not_found(video_id)
         session = db_session.create_session()
@@ -39,7 +44,10 @@ class LikeResource(Resource):
 
 
 class NotLikeResource(Resource):
+    """Создает ресурс API для работы с удалением видео из любимых"""
+
     def post(self, video_id):
+        """Удаляет видео из любимых"""
         abort_if_user_not_authenticated()
         abort_if_video_not_found(video_id)
         session = db_session.create_session()

@@ -9,6 +9,7 @@ __factory = None
 
 
 def global_init(db_file):
+    """Создает подключение к базе данных"""
     global __factory
 
     if __factory:
@@ -29,5 +30,6 @@ def global_init(db_file):
 
 
 def create_session() -> Session:
+    """Возвращает сессию, ассоциированную с текущим соединением"""
     global __factory
     return __factory()

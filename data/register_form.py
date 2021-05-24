@@ -4,6 +4,7 @@ from wtforms import PasswordField, BooleanField, SubmitField, StringField
 
 
 class RegisterForm(FlaskForm):
+    """Создает форму регистрации"""
     login = StringField('Логин', validators=[DataRequired()])
     password = PasswordField('Пароль', validators=[DataRequired()])
     repeat_password = PasswordField('Пароль еще раз', validators=[DataRequired()])

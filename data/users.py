@@ -6,6 +6,7 @@ from datetime import datetime
 
 
 class User(SqlAlchemyBase, UserMixin, SerializerMixin):
+    """Определяет таблицу с пользователями в базе данных"""
     __tablename__ = 'users'
 
     id = sqlalchemy.Column(sqlalchemy.Integer, primary_key=True, unique=True, autoincrement=True, nullable=False)

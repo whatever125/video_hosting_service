@@ -5,6 +5,7 @@ from datetime import datetime
 
 
 class Video(SqlAlchemyBase, SerializerMixin):
+    """Определяет таблицу с видео в базе данных"""
     __tablename__ = 'videos'
 
     id = sqlalchemy.Column(sqlalchemy.Integer, primary_key=True, unique=True, autoincrement=True, nullable=False)

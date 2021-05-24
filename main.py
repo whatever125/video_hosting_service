@@ -2,14 +2,14 @@ import os
 import json
 from passlib.context import CryptContext
 from flask import Flask, render_template, url_for, redirect, request, send_from_directory
+from flask_login import LoginManager, login_user, current_user, logout_user
+from flask_restful import Api
+from data import db_session
 from data.videos import Video
 from data.users import User
-from data import db_session
-from flask_login import LoginManager, login_user, current_user, logout_user
 from data.login_form import LoginForm
 from data.register_form import RegisterForm
 from data.video_form import VideoForm
-from flask_restful import Api
 from data.users_resource import UsersResource, UserListResource
 from data.videos_resource import VideosResource, VideoListResource
 from data.likes_resource import LikeResource, NotLikeResource
@@ -32,12 +32,14 @@ pwd_context = CryptContext(
 
 @app.route('/favicon.ico')
 def favicon():
+    """Возвращает кастомную иконку страницы в браузере"""
     return send_from_directory(os.path.join(app.root_path, 'static/img'),
                                'vhs.ico', mimetype='image/vnd.microsoft.icon')
 
 
 @app.errorhandler(403)
 def forbidden(e):
+    """Возвращает кастомную страницу ошибки 403"""
     params = {
         'title': 'Доступ запрещен',
         'message': 'Похоже, у вас нет доступа к этой странице ¯\\_(ツ)_/¯',
@@ -49,6 +51,7 @@ def forbidden(e):
 
 @app.errorhandler(404)
 def page_not_found(e):
+    """Возвращает кастомную страницу ошибки 404"""
     params = {
         'title': 'Страница не найдена',
         'message': 'Похоже, мы не можем найти нужную вам страницу ¯\\_(ツ)_/¯',
@@ -60,6 +63,7 @@ def page_not_found(e):
 
 @app.errorhandler(405)
 def method_not_allowed(e):
+    """Возвращает кастомную страницу ошибки 405"""
     params = {
         'title': 'Метод не разрешен',
         'message': 'Похоже, этот метод не разрешен ¯\\_(ツ)_/¯',
@@ -71,6 +75,7 @@ def method_not_allowed(e):
 
 @app.errorhandler(500)
 def internal_server_error(e):
+    """Возвращает кастомную страницу ошибки 500"""
     params = {
         'title': 'Ошибка сервера',
         'message': 'Похоже, на сервере произошла непредвиденная ошибка ¯\\_(ツ)_/¯',
@@ -83,6 +88,7 @@ def internal_server_error(e):
 @app.route('/')
 @app.route('/index')
 def index():
+    """Возвращает домашнюю страницу"""
     all_videos = db_sess.query(Video).all()
     if len(all_videos) > 3:
         last_videos = all_videos[len(all_videos) - 3:][::-1]
@@ -109,13 +115,9 @@ def index():
     return render_template('index.html', **params)
 
 
-@login_manager.user_loader
-def load_user(user_id):
-    return db_sess.query(User).get(user_id)
-
-
 @app.route('/login', methods=['GET', 'POST'])
 def login():
+    """Возвращает страницу авторизации и авторизует пользователя"""
     if current_user.is_authenticated:
         return forbidden('')
     form = LoginForm()
@@ -137,6 +139,7 @@ def login():
 
 @app.route('/register', methods=['GET', 'POST'])
 def register():
+    """Возвращает страницу регистрации и регистрирует пользователя"""
     if current_user.is_authenticated:
         return forbidden('')
     form = RegisterForm()
@@ -169,6 +172,10 @@ def register():
 
 @app.route('/logout')
 def logout():
+    """
+    Производит выход пользователя из системы, возвращает домашнюю страницу.
+    Если пользователь не авторизован, возвращает страницу ошибки 403
+    """
     if current_user.is_authenticated:
         logout_user()
         return redirect('/')
@@ -178,6 +185,7 @@ def logout():
 
 @app.route('/video/<int:video_id>')
 def video(video_id):
+    """Возвращает страницу с видео"""
     current_video = db_sess.query(Video).get(video_id)
     if user is None:
         return page_not_found('')
@@ -218,6 +226,10 @@ def video(video_id):
 
 @app.route('/add_video', methods=['GET', 'POST'])
 def add_video():
+    """
+    Возвращает страницу добавления видео если пользователь авторизован,
+    иначе доступ запрещен
+    """
     if not current_user.is_authenticated:
         return forbidden('')
     form = VideoForm()
@@ -251,12 +263,17 @@ def add_video():
 
 @app.route('/edit_video/<int:video_id>', methods=['GET', 'POST'])
 def edit_video(video_id):
+    """
+    Возвращает страницу редактирования видео
+    если пользователь авторизован и является автором,
+    иначе доступ запрщен
+    """
     form = VideoForm()
     video = db_sess.query(Video).get(video_id)
     if not current_user.is_authenticated or current_user.id != video.author:
         return forbidden('')
     params = {
-        'title': 'Изменение видео',
+        'title': 'Редактирование видео',
         'video': video,
         'description': '\n'.join(video.description.split('<br>')),
         'authenticated': current_user.is_authenticated,
@@ -284,6 +301,10 @@ def edit_video(video_id):
 
 @app.route('/delete_video/<int:video_id>')
 def delete_video(video_id):
+    """
+    Удаляет видео если пользователь авторизован и является автором,
+    иначе доступ запрещен
+    """
     video = db_sess.query(Video).get(video_id)
     if current_user.id != video.author:
         return redirect('/')
@@ -296,6 +317,7 @@ def delete_video(video_id):
 
 @app.route('/user/<int:user_id>')
 def user(user_id):
+    """Возвращает страницу выбранного пользователя с его видео"""
     user = db_sess.query(User).get(user_id)
     if user is None:
         return page_not_found('')
@@ -320,6 +342,11 @@ def user(user_id):
 
 @app.route('/feed')
 def feed():
+    """
+    Возвращает страницу с лентой видео от людей,
+    на которых подписан пользователь.
+    Если пользователь не авторизован, доступ запрещен
+    """
     if not current_user.is_authenticated:
         return forbidden('')
     subscriptions = json.loads(current_user.subscriptions)
@@ -348,6 +375,10 @@ def feed():
 
 @app.route('/favorite')
 def favorite():
+    """
+    Возвращает страницу с любимыми видео пользователя.
+    Если пользователь не авторизован, доступ запрещен
+    """
     if not current_user.is_authenticated:
         return forbidden('')
     likes = json.loads(current_user.likes)[::-1]
@@ -371,6 +402,10 @@ def favorite():
 
 @app.route('/people')
 def people():
+    """
+    Возвращает страницу с пользователями, на которых подписан пользователь.
+    Если пользователь не авторизован, доступ запрещен
+    """
     if not current_user.is_authenticated:
         return forbidden('')
     subscriptions = json.loads(current_user.subscriptions)
@@ -393,6 +428,7 @@ def people():
 
 @app.route('/search')
 def search():
+    """Возвращает страницу с результатами поиска видео"""
     query = request.args['search']
     videos = db_sess.query(Video).filter(Video.title == query).all()
     params = {
