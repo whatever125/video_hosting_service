@@ -115,6 +115,12 @@ def index():
     return render_template('index.html', **params)
 
 
+@login_manager.user_loader
+def load_user(user_id):
+    """Возвращает пользователя"""
+    return db_sess.query(User).get(user_id)
+
+
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     """Возвращает страницу авторизации и авторизует пользователя"""
