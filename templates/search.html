@@ -1,15 +1,20 @@
 {% extends "base.html" %}
 
 {% block content %}
-    <h4>Вот что нашлось по запросу "{{ query }}"</h4>
-    {% for vid in videos %}
-    <div class="row">
-        <div class="col-sm">
-            <a href="/video/{{ vid.id }}"><img src="static/pre/{{ vid.id }}.jpg" style="width: 100%"></a>
+    {% if not empty %}
+        <h4>Вот что нашлось по запросу "{{ query }}"</h4>
+        {% for vid in videos %}
+        <div class="row">
+            <div class="col-sm">
+                <a href="/video/{{ vid.id }}"><img src="static/pre/{{ vid.id }}.jpg" style="width: 100%"></a>
+            </div>
+            <div class="col-sm">
+                <p><a class="link-dark" href="/video/{{ vid.id }}">{{ vid.title }}</a> - <a class="link-dark" href="/user/{{ db_sess.query(User).filter(User.id == vid.author).first().id }}">{{ db_sess.query(User).filter(User.id == vid.author).first().name }} {{ db_sess.query(User).filter(User.id == vid.author).first().surname }}</a></p>
+            </div>
         </div>
-        <div class="col-sm">
-            <p><a class="link-dark" href="/video/{{ vid.id }}">{{ vid.title }}</a> - <a class="link-dark" href="/user/{{ db_sess.query(User).filter(User.id == vid.author).first().id }}">{{ db_sess.query(User).filter(User.id == vid.author).first().name }} {{ db_sess.query(User).filter(User.id == vid.author).first().surname }}</a></p>
-        </div>
-    </div>
-    {% endfor %}
+        {% endfor %}
+    {% else %}
+        <h3>К сожалению, по запросу "{{ query }}" ничего не нашлось</h3>
+        <h5>Попробуйте изменить запрос или найти что-то новое на <a class="link-dark" href="/">главной</a></h5>
+    {% endif %}
 {% endblock %}

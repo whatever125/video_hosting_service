@@ -24,13 +24,13 @@
             </h2>
         </div>
     </div>
-    <div class="row">
+    {% if authenticated and current_user.id == user.id %}
+    <div class="row" style="margin-bottom: 10px">
         <div class="col-sm-auto">
-            {% if authenticated and current_user.id == user.id %}
-                <a href="/add_video" class="btn btn-primary" role="button">Добавить видео</a>
-            {% endif %}
+            <a href="/add_video" class="btn btn-primary" role="button">Добавить видео</a>
         </div>
     </div>
+    {% endif %}
     <div class="row">
         <div class="row">
             <h4>Все видео</h4>

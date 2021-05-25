@@ -1,6 +1,7 @@
 import os
 import json
 from passlib.context import CryptContext
+from PIL import Image
 from flask import Flask, render_template, url_for, redirect, request, send_from_directory
 from flask_login import LoginManager, login_user, current_user, logout_user
 from flask_restful import Api
@@ -248,12 +249,14 @@ def add_video():
         video_file = request.files['video']
         if not video_file.filename.lower().endswith('.mp4'):
             return render_template('add_video.html',
-                                   message='Данный формат видео не поддерживается',
+                                   message='Данный формат видео не поддерживается. '
+                                           'Пожалуйста, загрузите видео в формате mp4.',
                                    form=form, **params)
         preview_file = request.files['preview']
         if not preview_file.filename.lower().endswith('.jpg'):
             return render_template('add_video.html',
-                                   message='Данный формат обложки не поддерживается',
+                                   message='Данный формат обложки не поддерживается. '
+                                           'Пожалуйста, загрузите изображение в формате jpg.',
                                    form=form, **params)
         video = Video()
         video.title = form.title.data
@@ -263,6 +266,17 @@ def add_video():
         db_sess.commit()
         video_file.save(os.path.join('static/vid', f'{video.id}.mp4'))
         preview_file.save(os.path.join('static/pre', f'{video.id}.jpg'))
+        with Image.open(f'static/pre/{video.id}.jpg') as preview_file:
+            width, height = preview_file.size
+            if width >= height:
+                new_width = height * 16 // 9
+                delta = (width - new_width) // 2
+                preview_file = preview_file.crop((delta, 0, new_width + delta, height))
+            else:
+                new_height = width * 9 // 16
+                delta = (height - new_height) // 2
+                preview_file = preview_file.crop((0, delta, width, new_height + delta))
+            preview_file.save(f'static/pre/{video.id}.jpg')
         return redirect('/')
     return render_template('add_video.html', form=form, **params)
 
@@ -301,6 +315,17 @@ def edit_video(video_id):
         db_sess.commit()
         video_file.save(os.path.join('static/vid', f'{video.id}.mp4'))
         preview_file.save(os.path.join('static/pre', f'{video.id}.jpg'))
+        with Image.open(f'static/pre/{video.id}.jpg') as preview_file:
+            width, height = preview_file.size
+            if width >= height:
+                new_width = height * 16 // 9
+                delta = (width - new_width) // 2
+                preview_file = preview_file.crop((delta, 0, new_width + delta, height))
+            else:
+                new_height = width * 9 // 16
+                delta = (height - new_height) // 2
+                preview_file = preview_file.crop((0, delta, width, new_height + delta))
+            preview_file.save(f'static/pre/{video.id}.jpg')
         return redirect('/')
     return render_template('edit_video.html', form=form, **params)
 
@@ -441,6 +466,7 @@ def search():
         'title': f'Поиск: {query}',
         'query': query,
         'videos': videos,
+        'empty': len(videos) == 0,
         'db_sess': db_sess,
         'User': User,
         'authenticated': current_user.is_authenticated,

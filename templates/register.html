@@ -4,6 +4,13 @@
     <h2>Регистрация</h2>
     <form action="" method="post">
         {{ form.hidden_tag() }}
+        {% if message %}
+            <div class="row mb-3" style="margin-top: 20px">
+                <div class="alert alert-danger" role="alert">
+                    {{ message }}
+                </div>
+            </div>
+        {% endif %}
         <div class="row mb-3">
             <div class="col-sm-2 col-form-label">
                 {{ form.login.label }}
@@ -77,9 +84,6 @@
         </div>
         <div class="">
             {{ form.submit(type="submit", class="btn btn-primary") }}
-        </div>
-        <div class="row mb-3">
-            {{ message }}
         </div>
     </form>
 {% endblock %}

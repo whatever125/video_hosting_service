@@ -11,7 +11,7 @@
                 </div>
             </div>
             {% if authenticated and current_user.id == current_video.author %}
-            <div>
+            <div style="margin-bottom: 10px">
                 <a href="/edit_video/{{ current_video.id }}" class="btn btn-warning" role="button">Изменить видео</a>
                 <a href="/delete_video/{{ current_video.id }}" class="btn btn-danger" role="button">Удалить видео</a>
             </div>
@@ -47,10 +47,10 @@
                     </button>
                 </div>
             </div>
-            <div class="row">
+            <div class="row" style="margin-top: 10px">
                 <div class="col">
                     {% autoescape false %}
-                    <p>{{ current_video.description }}</p>
+                    <p style="color: #808080">{{ current_video.description }}</p>
                     {% endautoescape %}
                 </div>
             </div>
